@@ -450,20 +450,15 @@ export function groupEventsByDay(
   if (config.show_empty_days) {
     const translations = Localize.getTranslations(language);
 
-    // Determine the date range to add empty days for
-    // In compact mode: only add empty days for the date range of days we're already showing
-    // In expanded mode: add empty days for the full date range (up to effectiveDaysToShow)
-
+    // Always start from the configured reference date
     let startDateForEmptyDays = new Date(referenceDate);
     let endDateForEmptyDays: Date;
 
     if (!isExpanded && days.length > 0) {
-      // In compact mode with existing days: only fill empty days within the range of days we're showing
-      const minTimestamp = Math.min(...days.map((d) => d.timestamp));
+      // In compact mode with existing days: only fill empty days within the range of days we're already showing
       const maxTimestamp = Math.max(...days.map((d) => d.timestamp));
 
-      startDateForEmptyDays = new Date(minTimestamp);
-      // Set to end of the day
+      // Keep startDateForEmptyDays as the configured reference date
       endDateForEmptyDays = new Date(maxTimestamp);
     } else {
       // In expanded mode or when no days: use full range from reference date
