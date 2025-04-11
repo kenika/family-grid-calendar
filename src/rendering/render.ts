@@ -634,13 +634,6 @@ export function renderGroupedEvents(
 
         // Week boundary if week numbers differ
         isNewWeek = currentWeekNumber !== prevWeekNumber;
-
-        // As a fallback, still check the day of week
-        // This ensures we don't miss a week boundary if week numbers are null
-        if (!isNewWeek && currentWeekNumber === null) {
-          const dayDate = new Date(day.timestamp);
-          isNewWeek = dayDate.getDay() === firstDayOfWeek;
-        }
       }
 
       const isNewMonth = prevDay && day.monthNumber !== prevDay.monthNumber;
