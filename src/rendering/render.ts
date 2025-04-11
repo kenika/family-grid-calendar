@@ -460,10 +460,16 @@ function renderIndicatorByType(
  *
  * @param date Date to display
  * @param config Card configuration
+ * @param language - Language code for translations
  * @param isToday Whether the date is today
  * @returns Rendered date column
  */
-function renderDateColumn(date: Date, config: Types.Config, isToday: boolean): TemplateResult {
+function renderDateColumn(
+  date: Date,
+  config: Types.Config,
+  language: string,
+  isToday: boolean,
+): TemplateResult {
   const isWeekendDay = date.getDay() === 0 || date.getDay() === 6;
 
   // Start with base colors
@@ -486,7 +492,7 @@ function renderDateColumn(date: Date, config: Types.Config, isToday: boolean): T
   }
 
   // Get translations for the current language
-  const translations = Localize.getTranslations(config.language || 'en');
+  const translations = Localize.getTranslations(language);
 
   // Get formatted date parts from translations
   const weekday = translations.daysOfWeek[date.getDay()];
@@ -830,7 +836,8 @@ export function renderEvent(
               rowspan="${day.events.length}"
               style="position: relative;"
             >
-              ${renderDateColumn(dayDate, config, isToday)} ${renderTodayIndicator(config, isToday)}
+              ${renderDateColumn(dayDate, config, language, isToday)}
+              ${renderTodayIndicator(config, isToday)}
             </td>
           `
         : ''}
