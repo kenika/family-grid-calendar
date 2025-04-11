@@ -706,7 +706,8 @@ export function renderEvent(
   const isWeekendDay = isWeekend(dayDate);
 
   // Check if this is a past event (already ended)
-  const today = new Date();
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
@@ -737,7 +738,7 @@ export function renderEvent(
     } else {
       // Regular event with time - use end time to determine if it's past
       const endDateTime = event.end.dateTime ? new Date(event.end.dateTime) : null;
-      isPastEvent = endDateTime !== null && today > endDateTime;
+      isPastEvent = endDateTime !== null && now > endDateTime;
     }
   }
 
