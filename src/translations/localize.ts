@@ -11,6 +11,7 @@ import * as Logger from '../utils/logger';
 
 // Import language files (sorted alphabetically by language code)
 import csTranslations from './languages/cs.json';
+import caTranslations from './languages/ca.json';
 import daTranslations from './languages/da.json';
 import deTranslations from './languages/de.json';
 import elTranslations from './languages/el.json';
@@ -27,6 +28,7 @@ import nlTranslations from './languages/nl.json';
 import nnTranslations from './languages/nn.json';
 import plTranslations from './languages/pl.json';
 import ptTranslations from './languages/pt.json';
+import roTranslations from './languages/ro.json';
 import ruTranslations from './languages/ru.json';
 import slTranslations from './languages/sl.json';
 import skTranslations from './languages/sk.json';
@@ -43,6 +45,7 @@ import zhTWTranslations from './languages/zh-TW.json';
 export const TRANSLATIONS: Record<string, Types.Translations> = {
   // Sorted alphabetically by language code
   cs: csTranslations,
+  ca: caTranslations,
   da: daTranslations,
   de: deTranslations,
   el: elTranslations,
@@ -59,6 +62,7 @@ export const TRANSLATIONS: Record<string, Types.Translations> = {
   nn: nnTranslations,
   pl: plTranslations,
   pt: ptTranslations,
+  ro: roTranslations,
   ru: ruTranslations,
   sl: slTranslations,
   sk: skTranslations,
