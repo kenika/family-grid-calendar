@@ -11,6 +11,7 @@ import * as Logger from '../utils/logger';
 
 // Import language files (sorted alphabetically by language code)
 import csTranslations from './languages/cs.json';
+import caTranslations from './languages/ca.json';
 import daTranslations from './languages/da.json';
 import deTranslations from './languages/de.json';
 import elTranslations from './languages/el.json';
@@ -43,6 +44,7 @@ import zhTWTranslations from './languages/zh-TW.json';
 export const TRANSLATIONS: Record<string, Types.Translations> = {
   // Sorted alphabetically by language code
   cs: csTranslations,
+  ca: caTranslations,
   da: daTranslations,
   de: deTranslations,
   el: elTranslations,
