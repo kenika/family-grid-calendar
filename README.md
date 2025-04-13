@@ -935,7 +935,7 @@ card_mod:
       border-radius: 0;
       border: none;
       box-shadow: none;
-      background: transparent;
+      background: transparent !important;
     }
 ```
 
