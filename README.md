@@ -46,7 +46,7 @@ Built with **performance in mind**, the card leverages **intelligent refresh mec
 - 🔧 **Highly Customizable** – Fine-tune layout, colors, event details, and behavior.
 - ⚡ **Optimized Performance** – Smart caching, progressive rendering, and minimal API calls.
 - 💡 **Deep Home Assistant Integration** – Theme-aware with native ripple effects.
-- 🌍 **Multi-Language Support** – [Available in 26 languages](#-adding-translations), community contributions welcome!
+- 🌍 **Multi-Language Support** – [Available in 28 languages](#-adding-translations), community contributions welcome!
 - 🧩 **Modular & Extensible** – Designed for future enhancements and easy customization.
 
 ### 🔗 Dependencies
@@ -1250,6 +1250,7 @@ For those interested in contributing code, I maintain detailed **[architecture d
 
 **Calendar Card Pro** currently supports:
 
+- **Catalan** (`ca`)
 - **Czech** (`cs`)
 - **Danish** (`da`)
 - **Dutch** (`nl`)
@@ -1266,6 +1267,7 @@ For those interested in contributing code, I maintain detailed **[architecture d
 - **Norwegian Nynorsk** (`nn`)
 - **Polish** (`pl`)
 - **Portuguese** (`pt`)
+- **Romanian** (`ro`)
 - **Russian** (`ru`)
 - **Slovak** (`sk`)
 - **Slovenian** (`sl`)
