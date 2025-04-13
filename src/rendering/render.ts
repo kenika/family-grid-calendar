@@ -612,9 +612,6 @@ export function renderGroupedEvents(
   config: Types.Config,
   language: string,
 ): TemplateResult {
-  // Get the configured first day of week
-  const firstDayOfWeek = FormatUtils.getFirstDayOfWeek(config.first_day_of_week, language);
-
   return html`
     ${days.map((day, index) => {
       const prevDay = index > 0 ? days[index - 1] : undefined;
