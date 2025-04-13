@@ -12,6 +12,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 dayjs.extend(relativeTime);
 
 // Explicitly import all locales supported by our card
+import 'dayjs/locale/ca';
 import 'dayjs/locale/cs';
 import 'dayjs/locale/da';
 import 'dayjs/locale/de';
@@ -29,6 +30,7 @@ import 'dayjs/locale/nl';
 import 'dayjs/locale/nn';
 import 'dayjs/locale/pl';
 import 'dayjs/locale/pt';
+import 'dayjs/locale/ro';
 import 'dayjs/locale/ru';
 import 'dayjs/locale/sk';
 import 'dayjs/locale/sl';
