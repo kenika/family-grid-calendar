@@ -291,15 +291,16 @@ export function getWeekNumber(
   method: 'iso' | 'simple' | null,
   firstDayOfWeek: number,
 ): number | null {
-  if (!method) return null;
+  // Use provided method or default to "iso" when null
+  const effectiveMethod = method || 'iso';
 
-  if (method === 'iso') {
+  if (effectiveMethod === 'iso') {
     // ISO week numbers are defined by ISO 8601 standard and always use Monday as first day
     // for calculation purposes, but we still display separator on the configured first day
     return getISOWeekNumber(date);
   }
 
-  if (method === 'simple') {
+  if (effectiveMethod === 'simple') {
     // Simple week numbers should respect the configured first day of week
     return getSimpleWeekNumber(date, firstDayOfWeek);
   }

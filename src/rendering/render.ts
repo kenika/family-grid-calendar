@@ -460,10 +460,16 @@ function renderIndicatorByType(
  *
  * @param date Date to display
  * @param config Card configuration
+ * @param language - Language code for translations
  * @param isToday Whether the date is today
  * @returns Rendered date column
  */
-function renderDateColumn(date: Date, config: Types.Config, isToday: boolean): TemplateResult {
+function renderDateColumn(
+  date: Date,
+  config: Types.Config,
+  language: string,
+  isToday: boolean,
+): TemplateResult {
   const isWeekendDay = date.getDay() === 0 || date.getDay() === 6;
 
   // Start with base colors
@@ -486,7 +492,7 @@ function renderDateColumn(date: Date, config: Types.Config, isToday: boolean): T
   }
 
   // Get translations for the current language
-  const translations = Localize.getTranslations(config.language || 'en');
+  const translations = Localize.getTranslations(language);
 
   // Get formatted date parts from translations
   const weekday = translations.daysOfWeek[date.getDay()];
@@ -606,9 +612,6 @@ export function renderGroupedEvents(
   config: Types.Config,
   language: string,
 ): TemplateResult {
-  // Get the configured first day of week
-  const firstDayOfWeek = FormatUtils.getFirstDayOfWeek(config.first_day_of_week, language);
-
   return html`
     ${days.map((day, index) => {
       const prevDay = index > 0 ? days[index - 1] : undefined;
@@ -628,13 +631,6 @@ export function renderGroupedEvents(
 
         // Week boundary if week numbers differ
         isNewWeek = currentWeekNumber !== prevWeekNumber;
-
-        // As a fallback, still check the day of week
-        // This ensures we don't miss a week boundary if week numbers are null
-        if (!isNewWeek && currentWeekNumber === null) {
-          const dayDate = new Date(day.timestamp);
-          isNewWeek = dayDate.getDay() === firstDayOfWeek;
-        }
       }
 
       const isNewMonth = prevDay && day.monthNumber !== prevDay.monthNumber;
@@ -700,7 +696,8 @@ export function renderEvent(
   const isWeekendDay = isWeekend(dayDate);
 
   // Check if this is a past event (already ended)
-  const today = new Date();
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
@@ -731,7 +728,7 @@ export function renderEvent(
     } else {
       // Regular event with time - use end time to determine if it's past
       const endDateTime = event.end.dateTime ? new Date(event.end.dateTime) : null;
-      isPastEvent = endDateTime !== null && today > endDateTime;
+      isPastEvent = endDateTime !== null && now > endDateTime;
     }
   }
 
@@ -830,7 +827,8 @@ export function renderEvent(
               rowspan="${day.events.length}"
               style="position: relative;"
             >
-              ${renderDateColumn(dayDate, config, isToday)} ${renderTodayIndicator(config, isToday)}
+              ${renderDateColumn(dayDate, config, language, isToday)}
+              ${renderTodayIndicator(config, isToday)}
             </td>
           `
         : ''}

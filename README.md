@@ -46,7 +46,7 @@ Built with **performance in mind**, the card leverages **intelligent refresh mec
 - 🔧 **Highly Customizable** – Fine-tune layout, colors, event details, and behavior.
 - ⚡ **Optimized Performance** – Smart caching, progressive rendering, and minimal API calls.
 - 💡 **Deep Home Assistant Integration** – Theme-aware with native ripple effects.
-- 🌍 **Multi-Language Support** – [Available in 26 languages](#-adding-translations), community contributions welcome!
+- 🌍 **Multi-Language Support** – [Available in 28 languages](#-adding-translations), community contributions welcome!
 - 🧩 **Modular & Extensible** – Designed for future enhancements and easy customization.
 
 ### 🔗 Dependencies
@@ -179,7 +179,7 @@ Calendar Card Pro offers a range of **customization options** to match your need
 - **Control which events are displayed**
 
   - Set `days_to_show` to define how many days are visible.
-  - Use `max_events_to_show` to limit the number of events in compact mode.
+  - Use `compact_events_to_show` to limit the number of events in compact mode.
 
 - **Customize colors, fonts, and layout**
 
@@ -201,7 +201,7 @@ entities:
   - entity: calendar.work
     color: '#457b9d' # Custom color for work events
 days_to_show: 5
-max_events_to_show: 5
+compact_events_to_show: 5
 show_location: true
 ```
 
@@ -236,17 +236,17 @@ entities:
 
 ##### Available Properties for Entity Configuration Objects:
 
-| Property           | Type    | Description                                                                                                                    |
-| ------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| entity             | string  | **Required.** The calendar entity ID                                                                                           |
-| label              | string  | Calendar label displayed before event titles. Supports text/emoji, MDI icons (`mdi:icon-name`), or images (`/local/image.jpg`) |
-| color              | string  | Custom color for event titles from this calendar                                                                               |
-| accent_color       | string  | Custom color for the vertical line and event background (when event_background_opacity is >0)                                  |
-| show_time          | boolean | Whether to show event times for this calendar (overrides global show_time setting)                                             |
-| show_location      | boolean | Whether to show event locations for this calendar (overrides global show_location setting)                                     |
-| max_events_to_show | number  | Maximum number of events to show from this calendar (works with global max_events_to_show)                                     |
-| blocklist          | string  | RegExp pattern to specify events to exclude (e.g., "Private\|Conference")                                                      |
-| allowlist          | string  | RegExp pattern to specify events to include (e.g., "Birthday\|Anniversary")                                                    |
+| Property               | Type    | Description                                                                                                                    |
+| ---------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| entity                 | string  | **Required.** The calendar entity ID                                                                                           |
+| label                  | string  | Calendar label displayed before event titles. Supports text/emoji, MDI icons (`mdi:icon-name`), or images (`/local/image.jpg`) |
+| color                  | string  | Custom color for event titles from this calendar                                                                               |
+| accent_color           | string  | Custom color for the vertical line and event background (when event_background_opacity is >0)                                  |
+| show_time              | boolean | Whether to show event times for this calendar (overrides global show_time setting)                                             |
+| show_location          | boolean | Whether to show event locations for this calendar (overrides global show_location setting)                                     |
+| compact_events_to_show | number  | Maximum number of events to show from this calendar (works with global compact_events_to_show)                                 |
+| blocklist              | string  | RegExp pattern to specify events to exclude (e.g., "Private\|Conference")                                                      |
+| allowlist              | string  | RegExp pattern to specify events to include (e.g., "Birthday\|Anniversary")                                                    |
 
 This structure gives you granular control over how information from different calendars is displayed.
 
@@ -935,7 +935,7 @@ card_mod:
       border-radius: 0;
       border: none;
       box-shadow: none;
-      background: transparent;
+      background: transparent !important;
     }
 ```
 
@@ -1083,7 +1083,7 @@ entities:
   - entity: calendar.personal
     color: '#c2ffb3' # Green for personal events
 days_to_show: 7
-max_events_to_show: 3 # Always only show 3 events
+compact_events_to_show: 3 # Always only show 3 events
 tap_action:
   action: expand # Tap to expand/collapse
 ```
@@ -1104,7 +1104,7 @@ entities:
   - entity: calendar.personal
     accent_color: '#43a047'
 days_to_show: 5
-max_events_to_show: 5
+compact_events_to_show: 5
 event_background_opacity: 20
 vertical_line_width: 5px
 event_spacing: 6px
@@ -1124,7 +1124,7 @@ entities:
   - entity: calendar.family
     accent_color: '#ff6c92'
 days_to_show: 5
-max_events_to_show: 5
+compact_events_to_show: 5
 vertical_line_width: 5px
 event_spacing: 5px
 show_week_numbers: iso
@@ -1151,7 +1151,7 @@ entities:
     color: '#b3ffd9'
 start_date: '2025-07-01'
 days_to_show: 10
-max_events_to_show: 10
+compact_events_to_show: 10
 language: en
 
 # Header
@@ -1250,6 +1250,7 @@ For those interested in contributing code, I maintain detailed **[architecture d
 
 **Calendar Card Pro** currently supports:
 
+- **Catalan** (`ca`)
 - **Czech** (`cs`)
 - **Danish** (`da`)
 - **Dutch** (`nl`)
@@ -1266,6 +1267,7 @@ For those interested in contributing code, I maintain detailed **[architecture d
 - **Norwegian Nynorsk** (`nn`)
 - **Polish** (`pl`)
 - **Portuguese** (`pt`)
+- **Romanian** (`ro`)
 - **Russian** (`ru`)
 - **Slovak** (`sk`)
 - **Slovenian** (`sl`)
@@ -1282,8 +1284,9 @@ To add a new language:
 1. **Create a new file** in `src/translations/languages/[lang-code].json`
 2. **Copy the structure** from an existing language file (e.g., `en.json`)
 3. **Update the localize file** in `src/translations/localize.ts` to include your new language
-4. **Translate all strings** to your language
-5. **Submit a Pull Request** with your changes
+4. **Update the dayjs file** in `src/translations/dayjs.ts` to include your new language
+5. **Translate all strings** to your language
+6. **Submit a Pull Request** with your changes
 
 **Example**: To add German support, you would:
 
