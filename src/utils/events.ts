@@ -62,7 +62,30 @@ export async function fetchEventData(
   const fetchedEvents = await fetchEvents(hass, entities, timeWindow);
 
   // Process events according to configuration rules
-  const processedEvents = processEvents(fetchedEvents, config);
+  let processedEvents = processEvents(fetchedEvents, config);
+
+  // Additional check to enforce days_to_show as a hard limit from reference date
+  const referenceDate = getStartDateReference(config);
+  const limitDate = new Date(referenceDate);
+  limitDate.setDate(limitDate.getDate() + config.days_to_show);
+
+  // Filter events to only include those within the days_to_show range
+  processedEvents = processedEvents.filter((event) => {
+    // Skip if event has no start information
+    if (!event.start) return false;
+
+    let eventDate: Date;
+    if (event.start.dateTime) {
+      eventDate = new Date(event.start.dateTime);
+    } else if (event.start.date) {
+      eventDate = FormatUtils.parseAllDayDate(event.start.date);
+    } else {
+      return false;
+    }
+
+    // Include event only if it starts before the limit date
+    return eventDate < limitDate;
+  });
 
   // Cache and return the processed results
   cacheEvents(cacheKey, processedEvents);
@@ -145,9 +168,11 @@ export function groupEventsByDay(
     return true;
   });
 
-  // Return early if no upcoming events
+  // Return early with empty state if no upcoming events
+  // Generate empty state based on the reference date
+  // when no events are found within the configured range
   if (upcomingEvents.length === 0) {
-    return [];
+    return generateEmptyStateEvents(config, language);
   }
 
   // Process events into days
@@ -559,42 +584,37 @@ export function generateEmptyStateEvents(
   const translations = Localize.getTranslations(language);
   // Use the reference date based on configuration instead of hardcoding today
   const referenceDate = getStartDateReference(config);
+
+  // Always generate exactly one day (the reference date) for empty state
+  // This ensures we show "No events" for the reference date only
   const days: Types.EventsByDay[] = [];
 
   // Get first day of week from config
   const firstDayOfWeek = FormatUtils.getFirstDayOfWeek(config.first_day_of_week, language);
 
-  // Generate either just today (if show_empty_days is false) or all configured days
-  const daysToGenerate = config.show_empty_days ? config.days_to_show : 1;
+  // Use helper function to calculate week number with majority rule
+  const weekNumber = calculateWeekNumberWithMajorityRule(referenceDate, config, firstDayOfWeek);
 
-  for (let i = 0; i < daysToGenerate; i++) {
-    const currentDate = new Date(referenceDate);
-    currentDate.setDate(referenceDate.getDate() + i);
-
-    // Use helper function to calculate week number with majority rule
-    const weekNumber = calculateWeekNumberWithMajorityRule(currentDate, config, firstDayOfWeek);
-
-    days.push({
-      weekday: translations.daysOfWeek[currentDate.getDay()],
-      day: currentDate.getDate(),
-      month: translations.months[currentDate.getMonth()],
-      timestamp: currentDate.getTime(),
-      events: [
-        {
-          summary: translations.noEvents,
-          start: { date: FormatUtils.getLocalDateKey(currentDate) },
-          end: { date: FormatUtils.getLocalDateKey(currentDate) },
-          _entityId: '_empty_day_',
-          _isEmptyDay: true,
-          location: '',
-        },
-      ],
-      weekNumber,
-      monthNumber: currentDate.getMonth(),
-      isFirstDayOfMonth: currentDate.getDate() === 1,
-      isFirstDayOfWeek: currentDate.getDay() === firstDayOfWeek,
-    });
-  }
+  days.push({
+    weekday: translations.daysOfWeek[referenceDate.getDay()],
+    day: referenceDate.getDate(),
+    month: translations.months[referenceDate.getMonth()],
+    timestamp: referenceDate.getTime(),
+    events: [
+      {
+        summary: translations.noEvents,
+        start: { date: FormatUtils.getLocalDateKey(referenceDate) },
+        end: { date: FormatUtils.getLocalDateKey(referenceDate) },
+        _entityId: '_empty_day_',
+        _isEmptyDay: true,
+        location: '',
+      },
+    ],
+    weekNumber,
+    monthNumber: referenceDate.getMonth(),
+    isFirstDayOfMonth: referenceDate.getDate() === 1,
+    isFirstDayOfWeek: referenceDate.getDay() === firstDayOfWeek,
+  });
 
   return days;
 }
