@@ -645,8 +645,12 @@ export function renderGroupedEvents(
       // Determine which separator to show based on precedence rules
       let separator: TemplateResult | typeof nothing = nothing;
 
-      // Apply precedence: Month separator > Week separator
-      if (isNewMonth && (!isNewWeek || config.show_week_numbers === null)) {
+      // Don't prioritize month separator if its width is 0px
+      if (
+        isNewMonth &&
+        config.month_separator_width !== '0px' &&
+        (!isNewWeek || config.show_week_numbers === null)
+      ) {
         // Month boundaries without week change get month separator
         separator = renderMonthSeparator(config);
       } else if (isNewWeek) {
