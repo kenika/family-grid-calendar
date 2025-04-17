@@ -313,7 +313,7 @@ export function groupEventsByDay(
   // Sort days and determine effective days to show based on mode
   const effectiveDaysToShow = isExpanded
     ? config.days_to_show
-    : config.compact_days_to_show || config.days_to_show;
+    : Math.min(config.compact_days_to_show || config.days_to_show, config.days_to_show);
 
   // Get days in chronological order limited to effective days to show
   let days = Object.values(eventsByDay)
