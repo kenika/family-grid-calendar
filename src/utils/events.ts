@@ -313,7 +313,7 @@ export function groupEventsByDay(
   // Sort days and determine effective days to show based on mode
   const effectiveDaysToShow = isExpanded
     ? config.days_to_show
-    : config.compact_days_to_show || config.days_to_show;
+    : Math.min(config.compact_days_to_show || config.days_to_show, config.days_to_show);
 
   // Get days in chronological order limited to effective days to show
   let days = Object.values(eventsByDay)
@@ -471,22 +471,34 @@ export function groupEventsByDay(
   }
 
   // Only add empty days AFTER we've filtered events in compact mode
-  // This ensures empty days are only added for days that would actually be shown
   if (config.show_empty_days) {
     const translations = Localize.getTranslations(language);
 
     // Always start from the configured reference date
-    let startDateForEmptyDays = new Date(referenceDate);
+    const startDateForEmptyDays = new Date(referenceDate);
+
+    // Determine the end date for empty days generation based on mode and parameters
     let endDateForEmptyDays: Date;
 
-    if (!isExpanded && days.length > 0) {
-      // In compact mode with existing days: only fill empty days within the range of days we're already showing
-      const maxTimestamp = Math.max(...days.map((d) => d.timestamp));
-
-      // Keep startDateForEmptyDays as the configured reference date
-      endDateForEmptyDays = new Date(maxTimestamp);
-    } else {
-      // In expanded mode or when no days: use full range from reference date
+    // In expanded mode or when using compact_days_to_show - use the full configured range
+    if (isExpanded || (config.compact_days_to_show && !config.compact_events_to_show)) {
+      // Use the full configured range from reference date to reference date + days_to_show - 1
+      endDateForEmptyDays = new Date(referenceDate);
+      endDateForEmptyDays.setDate(endDateForEmptyDays.getDate() + effectiveDaysToShow - 1);
+    }
+    // In compact mode with compact_events_to_show - use only days with events as reference
+    else if (!isExpanded && config.compact_events_to_show) {
+      // Only add empty days up to the last day with visible events
+      if (days.length > 0) {
+        const lastDayTimestamp = Math.max(...days.map((d) => d.timestamp));
+        endDateForEmptyDays = new Date(lastDayTimestamp);
+      } else {
+        // If no days with events, default to reference date
+        endDateForEmptyDays = new Date(referenceDate);
+      }
+    }
+    // Default fallback - use full configured range
+    else {
       endDateForEmptyDays = new Date(referenceDate);
       endDateForEmptyDays.setDate(endDateForEmptyDays.getDate() + effectiveDaysToShow - 1);
     }
@@ -514,6 +526,9 @@ export function groupEventsByDay(
 
       // Only add if we don't already have events for this day
       if (!existingDayKeys.has(dateKey)) {
+        // Use helper function to calculate week number with majority rule
+        const weekNumber = calculateWeekNumberWithMajorityRule(currentDate, config, firstDayOfWeek);
+
         // Create an empty day with a "fake" event
         const dayObj: Types.EventsByDay = {
           weekday: translations.daysOfWeek[currentDate.getDay()],
@@ -530,7 +545,7 @@ export function groupEventsByDay(
               location: '',
             },
           ],
-          weekNumber: calculateWeekNumberWithMajorityRule(currentDate, config, firstDayOfWeek),
+          weekNumber,
           monthNumber: currentDate.getMonth(),
           isFirstDayOfMonth: currentDate.getDate() === 1,
           isFirstDayOfWeek: currentDate.getDay() === firstDayOfWeek,
