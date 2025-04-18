@@ -485,10 +485,15 @@ class CalendarCardPro extends LitElement {
       // Error state - missing entities
       content = Render.renderCardContent('error', this.effectiveLanguage);
     } else if (this.events.length === 0) {
-      // Empty state - generate synthetic empty days
-      const emptyDays = EventUtils.generateEmptyStateEvents(this.config, this.effectiveLanguage);
-      // Use renderGroupedEvents to handle week numbers and separators
-      content = Render.renderGroupedEvents(emptyDays, this.config, this.effectiveLanguage);
+      // Even with no events, use the regular groupEventsByDay function
+      // which now handles empty API results correctly
+      const groupedEmptyDays = EventUtils.groupEventsByDay(
+        [], // Empty events array
+        this.config,
+        this.isExpanded,
+        this.effectiveLanguage,
+      );
+      content = Render.renderGroupedEvents(groupedEmptyDays, this.config, this.effectiveLanguage);
     } else {
       // Normal state with events - use renderGroupedEvents to handle week numbers and separators
       content = Render.renderGroupedEvents(this.groupedEvents, this.config, this.effectiveLanguage);
