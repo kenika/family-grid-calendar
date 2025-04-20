@@ -108,8 +108,6 @@ export function groupEventsByDay(
   isExpanded: boolean,
   language: string,
 ): Types.EventsByDay[] {
-  const eventsByDay: Record<string, Types.EventsByDay> = {};
-
   // Use reference date from configuration instead of hardcoded "today"
   const referenceDate = getStartDateReference(config);
   const referenceStart = new Date(referenceDate);
@@ -168,83 +166,81 @@ export function groupEventsByDay(
     return true;
   });
 
-  // Return early with empty state if no upcoming events
-  // Generate empty state based on the reference date
-  // when no events are found within the configured range
-  if (upcomingEvents.length === 0) {
-    return generateEmptyStateEvents(config, language);
-  }
+  // Always initialize the eventsByDay structure, regardless of whether we have events
+  const eventsByDay: Record<string, Types.EventsByDay> = {};
 
-  // Process events into days
-  upcomingEvents.forEach((event) => {
-    const isAllDayEvent = !event.start.dateTime;
+  // Process events into days (if any exist)
+  if (upcomingEvents.length > 0) {
+    upcomingEvents.forEach((event) => {
+      const isAllDayEvent = !event.start.dateTime;
 
-    let startDate: Date | null;
-    let endDate: Date | null;
+      let startDate: Date | null;
+      let endDate: Date | null;
 
-    if (isAllDayEvent) {
-      startDate = event.start.date ? FormatUtils.parseAllDayDate(event.start.date) : null;
-      endDate = event.end.date ? FormatUtils.parseAllDayDate(event.end.date) : null;
+      if (isAllDayEvent) {
+        startDate = event.start.date ? FormatUtils.parseAllDayDate(event.start.date) : null;
+        endDate = event.end.date ? FormatUtils.parseAllDayDate(event.end.date) : null;
 
-      // For all-day events, end date is exclusive in iCal format
-      if (endDate) {
-        const adjustedEndDate = new Date(endDate);
-        adjustedEndDate.setDate(adjustedEndDate.getDate() - 1);
-        endDate = adjustedEndDate;
+        // For all-day events, end date is exclusive in iCal format
+        if (endDate) {
+          const adjustedEndDate = new Date(endDate);
+          adjustedEndDate.setDate(adjustedEndDate.getDate() - 1);
+          endDate = adjustedEndDate;
+        }
+      } else {
+        startDate = event.start.dateTime ? new Date(event.start.dateTime) : null;
+        endDate = event.end.dateTime ? new Date(event.end.dateTime) : null;
       }
-    } else {
-      startDate = event.start.dateTime ? new Date(event.start.dateTime) : null;
-      endDate = event.end.dateTime ? new Date(event.end.dateTime) : null;
-    }
 
-    if (!startDate || !endDate) return;
+      if (!startDate || !endDate) return;
 
-    // Determine which day to display this event on, using reference date instead of today
-    let displayDate: Date;
+      // Determine which day to display this event on, using reference date instead of today
+      let displayDate: Date;
 
-    if (startDate >= referenceStart) {
-      // Event starts on or after reference date: Display on start date
-      displayDate = startDate;
-    } else if (endDate.toDateString() === referenceStart.toDateString()) {
-      // Event ends on reference date: Display on reference date
-      displayDate = referenceStart;
-    } else if (startDate < referenceStart && endDate > referenceStart) {
-      // Multi-day event that started before reference date and continues after:
-      // Display on reference date
-      displayDate = referenceStart;
-    } else {
-      // Fallback (shouldn't happen given our filter): Display on start date
-      displayDate = startDate;
-    }
+      if (startDate >= referenceStart) {
+        // Event starts on or after reference date: Display on start date
+        displayDate = startDate;
+      } else if (endDate.toDateString() === referenceStart.toDateString()) {
+        // Event ends on reference date: Display on reference date
+        displayDate = referenceStart;
+      } else if (startDate < referenceStart && endDate > referenceStart) {
+        // Multi-day event that started before reference date and continues after:
+        // Display on reference date
+        displayDate = referenceStart;
+      } else {
+        // Fallback (shouldn't happen given our filter): Display on start date
+        displayDate = startDate;
+      }
 
-    // Use displayDate for grouping instead of startDate
-    const eventDateKey = FormatUtils.getLocalDateKey(displayDate);
-    const translations = Localize.getTranslations(language);
+      // Use displayDate for grouping instead of startDate
+      const eventDateKey = FormatUtils.getLocalDateKey(displayDate);
+      const translations = Localize.getTranslations(language);
 
-    if (!eventsByDay[eventDateKey]) {
-      eventsByDay[eventDateKey] = {
-        weekday: translations.daysOfWeek[displayDate.getDay()],
-        day: displayDate.getDate(),
-        month: translations.months[displayDate.getMonth()],
-        timestamp: displayDate.getTime(),
-        events: [],
-      };
-    }
+      if (!eventsByDay[eventDateKey]) {
+        eventsByDay[eventDateKey] = {
+          weekday: translations.daysOfWeek[displayDate.getDay()],
+          day: displayDate.getDate(),
+          month: translations.months[displayDate.getMonth()],
+          timestamp: displayDate.getTime(),
+          events: [],
+        };
+      }
 
-    eventsByDay[eventDateKey].events.push({
-      summary: event.summary || '',
-      time: FormatUtils.formatEventTime(event, config, language),
-      location: config.show_location
-        ? FormatUtils.formatLocation(event.location || '', config.remove_location_country)
-        : '',
-      start: event.start,
-      end: event.end,
-      _entityId: event._entityId,
-      _entityLabel: getEntityLabel(event._entityId, config, event),
-      _matchedConfig: event._matchedConfig,
-      _isEmptyDay: event._isEmptyDay,
+      eventsByDay[eventDateKey].events.push({
+        summary: event.summary || '',
+        time: FormatUtils.formatEventTime(event, config, language),
+        location: config.show_location
+          ? FormatUtils.formatLocation(event.location || '', config.remove_location_country)
+          : '',
+        start: event.start,
+        end: event.end,
+        _entityId: event._entityId,
+        _entityLabel: getEntityLabel(event._entityId, config, event),
+        _matchedConfig: event._matchedConfig,
+        _isEmptyDay: event._isEmptyDay,
+      });
     });
-  });
+  }
 
   // After creating eventsByDay, add week/month metadata
   const firstDayOfWeek = FormatUtils.getFirstDayOfWeek(config.first_day_of_week, language);
@@ -470,8 +466,10 @@ export function groupEventsByDay(
     }
   }
 
-  // Only add empty days AFTER we've filtered events in compact mode
-  if (config.show_empty_days) {
+  // Empty days generation - this section needs to handle BOTH cases:
+  // 1. When show_empty_days is true AND we have some events
+  // 2. When API returns no events (days array is empty)
+  if (config.show_empty_days || days.length === 0) {
     const translations = Localize.getTranslations(language);
 
     // Always start from the configured reference date
@@ -480,15 +478,30 @@ export function groupEventsByDay(
     // Determine the end date for empty days generation based on mode and parameters
     let endDateForEmptyDays: Date;
 
-    // In expanded mode or when using compact_days_to_show - use the full configured range
-    if (isExpanded || (config.compact_days_to_show && !config.compact_events_to_show)) {
-      // Use the full configured range from reference date to reference date + days_to_show - 1
+    // Generate start and end dates based on current mode
+    if (isExpanded) {
+      // In expanded mode, always use the full configured range
       endDateForEmptyDays = new Date(referenceDate);
       endDateForEmptyDays.setDate(endDateForEmptyDays.getDate() + effectiveDaysToShow - 1);
-    }
-    // In compact mode with compact_events_to_show - use only days with events as reference
-    else if (!isExpanded && config.compact_events_to_show) {
-      // Only add empty days up to the last day with visible events
+    } else if (days.length === 0) {
+      // In compact mode with NO events at all:
+      // - If show_empty_days is true: Show empty days for full range
+      // - If show_empty_days is false: Show only reference date
+      if (config.show_empty_days) {
+        endDateForEmptyDays = new Date(referenceDate);
+        endDateForEmptyDays.setDate(endDateForEmptyDays.getDate() + effectiveDaysToShow - 1);
+      } else {
+        // When show_empty_days is false and there are no events,
+        // just show an empty day for the reference date
+        endDateForEmptyDays = new Date(referenceDate);
+      }
+    } else if (config.compact_days_to_show && !config.compact_events_to_show) {
+      // In compact mode with compact_days_to_show but no event limit
+      endDateForEmptyDays = new Date(referenceDate);
+      endDateForEmptyDays.setDate(endDateForEmptyDays.getDate() + effectiveDaysToShow - 1);
+    } else if (config.compact_events_to_show) {
+      // In compact mode with events and compact_events_to_show
+      // Only generate empty days up to the last visible day with events
       if (days.length > 0) {
         const lastDayTimestamp = Math.max(...days.map((d) => d.timestamp));
         endDateForEmptyDays = new Date(lastDayTimestamp);
@@ -496,9 +509,8 @@ export function groupEventsByDay(
         // If no days with events, default to reference date
         endDateForEmptyDays = new Date(referenceDate);
       }
-    }
-    // Default fallback - use full configured range
-    else {
+    } else {
+      // Default to full range
       endDateForEmptyDays = new Date(referenceDate);
       endDateForEmptyDays.setDate(endDateForEmptyDays.getDate() + effectiveDaysToShow - 1);
     }
@@ -582,56 +594,6 @@ function getEntityIndex(entityId: string | undefined, config: Types.Config): num
 
   // Return the found index or a large number if not found
   return index !== -1 ? index : Number.MAX_SAFE_INTEGER;
-}
-
-/**
- * Generate synthetic empty days for when no events are found
- * Creates placeholder days with "No events" message using the regular rendering pipeline
- *
- * @param config - Card configuration
- * @param language - Language code for translations
- * @returns Array of EventsByDay objects with empty day placeholders
- */
-export function generateEmptyStateEvents(
-  config: Types.Config,
-  language: string,
-): Types.EventsByDay[] {
-  const translations = Localize.getTranslations(language);
-  // Use the reference date based on configuration instead of hardcoding today
-  const referenceDate = getStartDateReference(config);
-
-  // Always generate exactly one day (the reference date) for empty state
-  // This ensures we show "No events" for the reference date only
-  const days: Types.EventsByDay[] = [];
-
-  // Get first day of week from config
-  const firstDayOfWeek = FormatUtils.getFirstDayOfWeek(config.first_day_of_week, language);
-
-  // Use helper function to calculate week number with majority rule
-  const weekNumber = calculateWeekNumberWithMajorityRule(referenceDate, config, firstDayOfWeek);
-
-  days.push({
-    weekday: translations.daysOfWeek[referenceDate.getDay()],
-    day: referenceDate.getDate(),
-    month: translations.months[referenceDate.getMonth()],
-    timestamp: referenceDate.getTime(),
-    events: [
-      {
-        summary: translations.noEvents,
-        start: { date: FormatUtils.getLocalDateKey(referenceDate) },
-        end: { date: FormatUtils.getLocalDateKey(referenceDate) },
-        _entityId: '_empty_day_',
-        _isEmptyDay: true,
-        location: '',
-      },
-    ],
-    weekNumber,
-    monthNumber: referenceDate.getMonth(),
-    isFirstDayOfMonth: referenceDate.getDate() === 1,
-    isFirstDayOfWeek: referenceDate.getDay() === firstDayOfWeek,
-  });
-
-  return days;
 }
 
 //-----------------------------------------------------------------------------

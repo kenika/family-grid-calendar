@@ -939,6 +939,44 @@ card_mod:
     }
 ```
 
+**Move time into the same row as the event title:**
+
+```yaml
+card_mod:
+  style: |
+    div.event-content {
+      display: grid;
+      grid-template-areas: 
+        "title time"
+        "location location";
+      grid-template-columns: 1fr auto;
+      column-gap: 10px;
+      row-gap: 0px;
+    }
+
+    div.summary {
+      grid-area: title;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    div.time {
+      grid-area: time;
+      white-space: nowrap;
+    }
+
+    div.location {
+      grid-area: location;
+      white-space: normal;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    div.time-location {
+      display: contents;
+    }
+```
+
 These examples demonstrate how Calendar Card Pro can be customized to match any dashboard design using card-mod's powerful CSS customization capabilities.
 
 <p align="right"><a href="#top">⬆️ back to top</a></p>
