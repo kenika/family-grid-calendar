@@ -107,6 +107,9 @@ export interface Config {
   location_color: string;
   location_icon_size: string;
 
+  // Weather
+  weather?: WeatherConfig;
+
   // Actions
   tap_action: ActionConfig;
   hold_action: ActionConfig;
@@ -133,6 +136,67 @@ export interface EntityConfig {
 
   /** @deprecated Use compact_events_to_show instead. Will be removed in v3.0 */
   max_events_to_show?: number;
+}
+
+// Add these interfaces to src/config/types.ts
+
+/**
+ * Weather position-specific styling configuration
+ */
+export interface WeatherPositionConfig {
+  icon_size?: string;
+  font_size?: string;
+  color?: string;
+}
+
+/**
+ * Weather configuration
+ */
+export interface WeatherConfig {
+  entity?: string;
+  position?: 'date' | 'event' | 'both';
+  show_conditions?: boolean;
+  show_high_temp?: boolean;
+  show_low_temp?: boolean;
+  date?: WeatherPositionConfig;
+  event?: WeatherPositionConfig;
+}
+
+/**
+ * Raw weather forecast data from Home Assistant
+ */
+export interface WeatherForecast {
+  datetime: string;
+  condition: string;
+  temperature: number;
+  templow?: number;
+  precipitation?: number;
+  precipitation_probability?: number;
+  wind_speed?: number;
+  wind_bearing?: number;
+  humidity?: number;
+}
+
+/**
+ * Processed weather data for use in templates
+ */
+export interface WeatherData {
+  icon: string;
+  condition: string;
+  temperature: string | number;
+  templow?: string | number;
+  datetime: string;
+  hour?: number;
+  precipitation?: number;
+  precipitation_probability?: number;
+}
+
+/**
+ * Weather forecasts organized by type and date/time
+ */
+export interface WeatherForecasts {
+  daily?: Record<string, WeatherData>;
+  hourly?: Record<string, WeatherData>;
 }
 
 // -----------------------------------------------------------------------------
@@ -228,7 +292,9 @@ export interface Hass {
   };
   connection?: {
     subscribeEvents: (callback: (event: unknown) => void, eventType: string) => Promise<() => void>;
+    subscribeMessage: (callback: (message: any) => void, options: any) => () => void;
   };
+  formatEntityState?: (stateObj: any, state: string) => string;
 }
 
 /**

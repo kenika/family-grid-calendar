@@ -17,6 +17,8 @@ import * as Localize from '../translations/localize';
 import * as FormatUtils from '../utils/format';
 import * as EventUtils from '../utils/events';
 import * as Helpers from '../utils/helpers';
+import * as Weather from '../utils/weather';
+import * as WeatherUtils from '../utils/weather';
 
 //-----------------------------------------------------------------------------
 // MAIN CARD STRUCTURE RENDERING
@@ -469,6 +471,7 @@ function renderDateColumn(
   config: Types.Config,
   language: string,
   isToday: boolean,
+  weatherForecasts?: Types.WeatherForecasts,
 ): TemplateResult {
   const isWeekendDay = date.getDay() === 0 || date.getDay() === 6;
 
@@ -498,6 +501,48 @@ function renderDateColumn(
   const weekday = translations.daysOfWeek[date.getDay()];
   const day = date.getDate();
   const month = translations.months[date.getMonth()];
+
+  // Add weather if configured
+  const showDateWeather =
+    (config.weather?.position === 'date' || config.weather?.position === 'both') &&
+    config.weather?.entity;
+
+  let weatherContent: TemplateResult | typeof nothing = nothing;
+
+  if (showDateWeather && weatherForecasts?.daily) {
+    const dailyForecast = Weather.findDailyForecast(date, weatherForecasts.daily);
+
+    if (dailyForecast) {
+      const showConditions = config.weather?.show_conditions !== false;
+      const showHighTemp = config.weather?.show_high_temp === true;
+      const showLowTemp = config.weather?.show_low_temp === true && dailyForecast.templow;
+
+      // Get styling from config or defaults
+      const dateConfig = config.weather?.date || {};
+      const iconSize = dateConfig.icon_size || '14px';
+      const fontSize = dateConfig.font_size || '12px';
+      const color = dateConfig.color || 'var(--primary-text-color)';
+
+      weatherContent = html`
+        <div class="weather" style="font-size: ${fontSize}; color: ${color};">
+          ${showConditions
+            ? html`
+                <ha-icon
+                  .icon=${dailyForecast.icon}
+                  style="--mdc-icon-size: ${iconSize};"
+                ></ha-icon>
+              `
+            : nothing}
+          ${showHighTemp
+            ? html` <span class="weather-temp-high">${dailyForecast.temperature}°</span> `
+            : nothing}
+          ${showLowTemp
+            ? html` <span class="weather-temp-low">/${dailyForecast.templow}°</span> `
+            : nothing}
+        </div>
+      `;
+    }
+  }
 
   return html`
     <div
@@ -531,6 +576,7 @@ function renderDateColumn(
           </div>
         `
       : nothing}
+    ${weatherContent}
   `;
 }
 
@@ -550,6 +596,7 @@ export function renderDay(
   language: string,
   prevDay?: Types.EventsByDay,
   boundaryInfo?: { isNewWeek: boolean; isNewMonth: boolean },
+  weatherForecasts?: Types.WeatherForecasts,
 ): TemplateResult {
   // Check if this day is today
   const now = new Date();
@@ -597,7 +644,8 @@ export function renderDay(
       ${repeat(
         day.events,
         (event, index) => `${event._entityId}-${event.summary}-${index}`,
-        (event, index) => renderEvent(event, day, index, config, language, isToday),
+        (event, index) =>
+          renderEvent(event, day, index, config, language, isToday, weatherForecasts),
       )}
     </table>
   `;
@@ -611,6 +659,7 @@ export function renderGroupedEvents(
   days: Types.EventsByDay[],
   config: Types.Config,
   language: string,
+  weatherForecasts?: Types.WeatherForecasts,
 ): TemplateResult {
   return html`
     ${days.map((day, index) => {
@@ -669,7 +718,9 @@ export function renderGroupedEvents(
         }
       }
 
-      return html` ${separator} ${renderDay(day, config, language, prevDay, boundaryInfo)} `;
+      return html`
+        ${separator} ${renderDay(day, config, language, prevDay, boundaryInfo, weatherForecasts)}
+      `;
     })}
   `;
 }
@@ -691,6 +742,7 @@ export function renderEvent(
   config: Types.Config,
   language: string,
   isToday: boolean,
+  weatherForecasts?: Types.WeatherForecasts,
 ): TemplateResult {
   // Add CSS class for empty days
   const isEmptyDay = Boolean(event._isEmptyDay);
@@ -831,7 +883,7 @@ export function renderEvent(
               rowspan="${day.events.length}"
               style="position: relative;"
             >
-              ${renderDateColumn(dayDate, config, language, isToday)}
+              ${renderDateColumn(dayDate, config, language, isToday, weatherForecasts)}
               ${renderTodayIndicator(config, isToday)}
             </td>
           `

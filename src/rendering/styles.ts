@@ -60,6 +60,16 @@ export function generateCustomPropertiesObject(config: Types.Config): Record<str
       config.empty_day_color === Config.DEFAULT_CONFIG.empty_day_color
         ? 'rgba(var(--rgb-primary-text-color, 255, 255, 255), 0.6)'
         : config.empty_day_color,
+
+    // Weather styling properties
+    '--calendar-card-weather-date-icon-size': config.weather?.date?.icon_size || '14px',
+    '--calendar-card-weather-date-font-size': config.weather?.date?.font_size || '12px',
+    '--calendar-card-weather-date-color':
+      config.weather?.date?.color || 'var(--primary-text-color)',
+    '--calendar-card-weather-event-icon-size': config.weather?.event?.icon_size || '14px',
+    '--calendar-card-weather-event-font-size': config.weather?.event?.font_size || '12px',
+    '--calendar-card-weather-event-color':
+      config.weather?.event?.color || 'var(--secondary-text-color)',
   };
 
   // Optional properties
@@ -393,6 +403,54 @@ export const cardStyles = css`
       transform: scale(0.95);
       opacity: 0.7;
     }
+  }
+
+  /* Weather styles */
+
+  /* Date column weather */
+  .date-column .weather {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .weather ha-icon {
+    margin-right: 1px;
+  }
+
+  .weather-temp-high,
+  .weather-temp-low {
+    line-height: 1;
+    vertical-align: middle;
+  }
+
+  .weather-temp-high {
+    font-weight: 500;
+  }
+
+  .weather-temp-low {
+    opacity: 0.8;
+  }
+
+  /* Event weather */
+  .event-weather {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: auto;
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+  .summary {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   /* ===== EVENT STYLES ===== */

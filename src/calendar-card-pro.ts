@@ -39,6 +39,7 @@ import * as Editor from './rendering/editor';
 import * as Styles from './rendering/styles';
 import * as Feedback from './interaction/feedback';
 import * as Render from './rendering/render';
+import * as Weather from './utils/weather';
 
 //-----------------------------------------------------------------------------
 // GLOBAL TYPE DECLARATIONS
@@ -80,12 +81,17 @@ class CalendarCardPro extends LitElement {
   @property({ attribute: false }) events: Types.CalendarEventData[] = [];
   @property({ attribute: false }) isLoading = true;
   @property({ attribute: false }) isExpanded = false;
+  @property({ attribute: false }) weatherForecasts: Types.WeatherForecasts = {
+    daily: {},
+    hourly: {},
+  };
 
   // Private, non-reactive properties
   private _instanceId = Helpers.generateInstanceId();
   private _language = '';
   private _refreshTimerId?: number;
   private _lastUpdateTime = Date.now();
+  private _weatherUnsubscribers: Array<() => void> = [];
 
   // Interaction state
   private _activePointerId: number | null = null;
@@ -154,12 +160,18 @@ class CalendarCardPro extends LitElement {
     // Load events on initial connection
     this.updateEvents();
 
+    // Set up weather subscriptions if configured
+    this._setupWeatherSubscriptions();
+
     // Set up visibility listener
     document.addEventListener('visibilitychange', this._handleVisibilityChange);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
+
+    // Clean up weather subscriptions
+    this._cleanupWeatherSubscriptions();
 
     // Clean up timers
     if (this._refreshTimerId) {
@@ -238,6 +250,55 @@ class CalendarCardPro extends LitElement {
     }, refreshMs);
 
     Logger.debug(`Scheduled next refresh in ${refreshMinutes} minutes`);
+  }
+
+  /**
+   * Set up weather forecast subscriptions
+   */
+  private _setupWeatherSubscriptions(): void {
+    // Clean up existing subscriptions
+    this._cleanupWeatherSubscriptions();
+
+    // Skip if no weather configuration or no entity
+    if (!this.config?.weather?.entity || !this.hass) {
+      return;
+    }
+
+    // Determine which forecast types to subscribe to
+    const forecastTypes = Weather.getRequiredForecastTypes(this.config.weather);
+
+    // Subscribe to each required forecast type
+    forecastTypes.forEach((type) => {
+      const unsubscribe = Weather.subscribeToWeatherForecast(
+        this.hass!,
+        this.config,
+        type,
+        (forecasts) => {
+          // Update the appropriate forecast type
+          this.weatherForecasts = {
+            ...this.weatherForecasts,
+            [type]: forecasts,
+          };
+          this.requestUpdate();
+        },
+      );
+
+      if (unsubscribe) {
+        this._weatherUnsubscribers.push(unsubscribe);
+      }
+    });
+  }
+
+  /**
+   * Clean up weather subscriptions
+   */
+  private _cleanupWeatherSubscriptions(): void {
+    this._weatherUnsubscribers.forEach((unsubscribe) => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    });
+    this._weatherUnsubscribers = [];
   }
 
   /**
@@ -347,7 +408,7 @@ class CalendarCardPro extends LitElement {
   /**
    * Handle configuration updates from Home Assistant
    */
-  setConfig(config: Partial<Types.Config>) {
+  setConfig(config: Partial<Types.Config>): void {
     const previousConfig = this.config;
 
     // First do the standard merging
@@ -380,6 +441,16 @@ class CalendarCardPro extends LitElement {
       this.config.show_past_events,
       this.config.start_date,
     );
+
+    // Track if weather config changes
+    const weatherEntityChanged =
+      this.config?.weather?.entity !== config.weather?.entity ||
+      this.config?.weather?.position !== config.weather?.position;
+
+    // Update weather subscriptions if entity or position changed
+    if (weatherEntityChanged) {
+      this._setupWeatherSubscriptions();
+    }
 
     // Check if we need to reload data
     const configChanged = Config.hasConfigChanged(previousConfig, this.config);
@@ -493,10 +564,20 @@ class CalendarCardPro extends LitElement {
         this.isExpanded,
         this.effectiveLanguage,
       );
-      content = Render.renderGroupedEvents(groupedEmptyDays, this.config, this.effectiveLanguage);
+      content = Render.renderGroupedEvents(
+        groupedEmptyDays,
+        this.config,
+        this.effectiveLanguage,
+        this.weatherForecasts,
+      );
     } else {
       // Normal state with events - use renderGroupedEvents to handle week numbers and separators
-      content = Render.renderGroupedEvents(this.groupedEvents, this.config, this.effectiveLanguage);
+      content = Render.renderGroupedEvents(
+        this.groupedEvents,
+        this.config,
+        this.effectiveLanguage,
+        this.weatherForecasts,
+      );
     }
 
     // Render main card structure with content

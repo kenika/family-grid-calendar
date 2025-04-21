@@ -110,6 +110,25 @@ export const DEFAULT_CONFIG: Types.Config = {
   location_color: 'var(--secondary-text-color)',
   location_icon_size: '14px',
 
+  // Weather
+  weather: {
+    entity: undefined,
+    position: 'date',
+    show_conditions: true,
+    show_high_temp: true,
+    show_low_temp: false,
+    date: {
+      icon_size: '14px',
+      font_size: '12px',
+      color: 'var(--primary-text-color)',
+    },
+    event: {
+      icon_size: '14px',
+      font_size: '12px',
+      color: 'var(--secondary-text-color)',
+    },
+  },
+
   // Actions
   tap_action: { action: 'none' },
   hold_action: { action: 'none' },
