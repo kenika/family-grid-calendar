@@ -40,12 +40,14 @@
     "@typescript-eslint/eslint-plugin": "^8.25.0",
     "@typescript-eslint/parser": "^8.25.0",
     "cross-env": "^7.0.3",
+    "esbuild": "^0.25.2",
     "eslint": "^9.21.0",
     "eslint-config-prettier": "^10.0.2",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-prettier": "^5.2.3",
     "prettier": "^3.5.2",
     "rollup": "^4.34.8",
+    "rollup-plugin-esbuild": "^6.2.1",
     "typescript": "^5.7.3"
   },
   "dependencies": {
