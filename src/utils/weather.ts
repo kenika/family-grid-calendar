@@ -1,38 +1,17 @@
+/* eslint-disable import/order */
 /**
  * Weather utilities for Calendar Card Pro
  *
- * Handles weather forecast data retrieval, processing, and display.
+ * Processes and formats weather data from Home Assistant for use in the calendar card.
  */
 
 import * as Types from '../config/types';
 import * as Logger from './logger';
 import * as FormatUtils from './format';
 
-// Map of weather condition codes to MDI icons
-const CONDITION_ICON_MAP: Record<string, string> = {
-  'clear-night': 'mdi:weather-night',
-  cloudy: 'mdi:weather-cloudy',
-  fog: 'mdi:weather-fog',
-  hail: 'mdi:weather-hail',
-  lightning: 'mdi:weather-lightning',
-  'lightning-rainy': 'mdi:weather-lightning-rainy',
-  partlycloudy: 'mdi:weather-partly-cloudy',
-  pouring: 'mdi:weather-pouring',
-  rainy: 'mdi:weather-rainy',
-  snowy: 'mdi:weather-snowy',
-  'snowy-rainy': 'mdi:weather-snowy-rainy',
-  sunny: 'mdi:weather-sunny',
-  windy: 'mdi:weather-windy',
-  'windy-variant': 'mdi:weather-windy-variant',
-  exceptional: 'mdi:weather-cloudy-alert',
-};
-
-// Night-specific icon overrides
-const NIGHT_ICONS: Record<string, string> = {
-  sunny: 'mdi:weather-night',
-  partlycloudy: 'mdi:weather-night-partly-cloudy',
-  'lightning-rainy': 'mdi:weather-lightning',
-};
+//-----------------------------------------------------------------------------
+// CORE WEATHER DATA PROCESSING
+//-----------------------------------------------------------------------------
 
 /**
  * Determine which forecast types (daily, hourly) are required based on configuration
@@ -62,58 +41,6 @@ export function getRequiredForecastTypes(
 
   // Both positions need both forecast types
   return ['daily', 'hourly'];
-}
-
-/**
- * Subscribe to weather forecast data from Home Assistant
- *
- * @param hass Home Assistant instance
- * @param config Calendar card configuration
- * @param forecastType Type of forecast to subscribe to ('daily' or 'hourly')
- * @param callback Callback function to receive forecast data
- * @returns Unsubscribe function or undefined
- */
-export function subscribeToWeatherForecast(
-  hass: Types.Hass,
-  config: Types.Config,
-  forecastType: 'daily' | 'hourly',
-  callback: (forecasts: Record<string, Types.WeatherData>) => void,
-): (() => void) | undefined {
-  if (!hass?.connection || !config?.weather?.entity) {
-    return undefined;
-  }
-
-  const entityId = config.weather.entity;
-
-  try {
-    // Set up subscription to weather forecast data
-    const unsubscribe = hass.connection.subscribeMessage(
-      (message: { forecast: Array<Types.WeatherForecast> }) => {
-        if (message && Array.isArray(message.forecast)) {
-          // Process forecast data
-          const processedForecasts = processForecastData(message.forecast, forecastType);
-
-          // Call callback with processed data
-          callback(processedForecasts);
-        }
-      },
-      {
-        type: 'weather/subscribe_forecast',
-        forecast_type: forecastType,
-        entity_id: entityId,
-      },
-    );
-
-    return unsubscribe;
-  } catch (error) {
-    Logger.error('Failed to subscribe to weather forecast', {
-      entity: entityId,
-      forecast_type: forecastType,
-      error,
-    });
-
-    return undefined;
-  }
 }
 
 /**
@@ -176,25 +103,9 @@ function processForecastData(
   return processedForecasts;
 }
 
-/**
- * Get MDI icon name for a weather condition
- *
- * @param condition Weather condition string
- * @param hour Optional hour (0-23) to determine day/night
- * @returns MDI icon name
- */
-function getWeatherIcon(condition: string, hour?: number): string {
-  // Determine if it's night (between 18:00 and 6:00)
-  const isNight = hour !== undefined && (hour >= 18 || hour < 6);
-
-  // If it's night and we have a night-specific override, use it
-  if (isNight && NIGHT_ICONS[condition]) {
-    return NIGHT_ICONS[condition];
-  }
-
-  // Otherwise use standard icon or default to cloudy alert
-  return CONDITION_ICON_MAP[condition] || 'mdi:weather-cloudy-alert';
-}
+//-----------------------------------------------------------------------------
+// FORECAST MATCHING AND LOOKUP
+//-----------------------------------------------------------------------------
 
 /**
  * Find the daily forecast for a specific date
@@ -273,4 +184,110 @@ export function findForecastForEvent(
   }
 
   return undefined;
+}
+
+//-----------------------------------------------------------------------------
+// WEATHER DATA FORMATTING
+//-----------------------------------------------------------------------------
+
+// Map of weather condition codes to MDI icons
+const CONDITION_ICON_MAP: Record<string, string> = {
+  'clear-night': 'mdi:weather-night',
+  cloudy: 'mdi:weather-cloudy',
+  fog: 'mdi:weather-fog',
+  hail: 'mdi:weather-hail',
+  lightning: 'mdi:weather-lightning',
+  'lightning-rainy': 'mdi:weather-lightning-rainy',
+  partlycloudy: 'mdi:weather-partly-cloudy',
+  pouring: 'mdi:weather-pouring',
+  rainy: 'mdi:weather-rainy',
+  snowy: 'mdi:weather-snowy',
+  'snowy-rainy': 'mdi:weather-snowy-rainy',
+  sunny: 'mdi:weather-sunny',
+  windy: 'mdi:weather-windy',
+  'windy-variant': 'mdi:weather-windy-variant',
+  exceptional: 'mdi:weather-cloudy-alert',
+};
+
+// Night-specific icon overrides
+const NIGHT_ICONS: Record<string, string> = {
+  sunny: 'mdi:weather-night',
+  partlycloudy: 'mdi:weather-night-partly-cloudy',
+  'lightning-rainy': 'mdi:weather-lightning',
+};
+
+/**
+ * Get MDI icon name for a weather condition
+ *
+ * @param condition Weather condition string
+ * @param hour Optional hour (0-23) to determine day/night
+ * @returns MDI icon name
+ */
+function getWeatherIcon(condition: string, hour?: number): string {
+  // Determine if it's night (between 18:00 and 6:00)
+  const isNight = hour !== undefined && (hour >= 18 || hour < 6);
+
+  // If it's night and we have a night-specific override, use it
+  if (isNight && NIGHT_ICONS[condition]) {
+    return NIGHT_ICONS[condition];
+  }
+
+  // Otherwise use standard icon or default to cloudy alert
+  return CONDITION_ICON_MAP[condition] || 'mdi:weather-cloudy-alert';
+}
+
+//-----------------------------------------------------------------------------
+// SUBSCRIPTION MANAGEMENT
+//-----------------------------------------------------------------------------
+
+/**
+ * Subscribe to weather forecast data from Home Assistant
+ *
+ * @param hass Home Assistant instance
+ * @param config Calendar card configuration
+ * @param forecastType Type of forecast to subscribe to ('daily' or 'hourly')
+ * @param callback Callback function to receive forecast data
+ * @returns Unsubscribe function or undefined
+ */
+export function subscribeToWeatherForecast(
+  hass: Types.Hass,
+  config: Types.Config,
+  forecastType: 'daily' | 'hourly',
+  callback: (forecasts: Record<string, Types.WeatherData>) => void,
+): (() => void) | undefined {
+  if (!hass?.connection || !config?.weather?.entity) {
+    return undefined;
+  }
+
+  const entityId = config.weather.entity;
+
+  try {
+    // Set up subscription to weather forecast data
+    const unsubscribe = hass.connection.subscribeMessage(
+      (message: { forecast: Array<Types.WeatherForecast> }) => {
+        if (message && Array.isArray(message.forecast)) {
+          // Process forecast data
+          const processedForecasts = processForecastData(message.forecast, forecastType);
+
+          // Call callback with processed data
+          callback(processedForecasts);
+        }
+      },
+      {
+        type: 'weather/subscribe_forecast',
+        forecast_type: forecastType,
+        entity_id: entityId,
+      },
+    );
+
+    return unsubscribe;
+  } catch (error) {
+    Logger.error('Failed to subscribe to weather forecast', {
+      entity: entityId,
+      forecast_type: forecastType,
+      error,
+    });
+
+    return undefined;
+  }
 }

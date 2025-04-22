@@ -18,7 +18,6 @@ import * as FormatUtils from '../utils/format';
 import * as EventUtils from '../utils/events';
 import * as Helpers from '../utils/helpers';
 import * as Weather from '../utils/weather';
-import * as WeatherUtils from '../utils/weather';
 
 //-----------------------------------------------------------------------------
 // MAIN CARD STRUCTURE RENDERING
@@ -788,11 +787,6 @@ export function renderEvent(
     }
   }
 
-  // Get colors from config based on entity ID and matched config
-  const entityColor = isEmptyDay
-    ? 'var(--calendar-card-empty-day-color)'
-    : EventUtils.getEntityColor(event._entityId, config, event);
-
   // Get line color (solid) and background color (with opacity)
   const entityAccentColor = EventUtils.getEntityAccentColorWithOpacity(
     event._entityId,
@@ -893,14 +887,7 @@ export function renderEvent(
         style="border-left: var(--calendar-card-line-width-vertical) solid ${entityAccentColor}; background-color: ${entityAccentBackgroundColor};"
       >
         <div class="event-content">
-          <div
-            class="event-title ${isEmptyDay ? 'empty-day-title' : ''}"
-            style="color: ${entityColor}"
-          >
-            ${EventUtils.getEntityLabel(event._entityId, config, event)
-              ? renderLabel(EventUtils.getEntityLabel(event._entityId, config, event))
-              : ''}${isEmptyDay ? `✓ ${event.summary}` : event.summary}
-          </div>
+          ${renderEventTitle(event, config, weatherForecasts)}
           <div class="time-location">
             ${shouldShowTime
               ? html`
@@ -955,5 +942,78 @@ export function renderEvent(
         </div>
       </td>
     </tr>
+  `;
+}
+
+/**
+ * Render an event title with optional label and weather data
+ */
+export function renderEventTitle(
+  event: Types.CalendarEventData,
+  config: Types.Config,
+  weatherForecasts?: Types.WeatherForecasts,
+): TemplateResult {
+  const isEmptyDay = !!event._isEmptyDay;
+  const entityColor = isEmptyDay
+    ? config.empty_day_color
+    : event._matchedConfig?.color || config.event_color;
+
+  return html`
+    <div class="summary-row">
+      <div class="summary">
+        ${EventUtils.getEntityLabel(event._entityId, config, event)
+          ? renderLabel(EventUtils.getEntityLabel(event._entityId, config, event))
+          : ''}
+        <span
+          class="event-title ${isEmptyDay ? 'empty-day-title' : ''}"
+          style="color: ${entityColor}"
+        >
+          ${isEmptyDay ? `✓ ${event.summary}` : event.summary}
+        </span>
+      </div>
+      ${renderEventWeather(event, config, weatherForecasts)}
+    </div>
+  `;
+}
+
+/**
+ * Render weather information for an event
+ */
+function renderEventWeather(
+  event: Types.CalendarEventData,
+  config: Types.Config,
+  weatherForecasts?: Types.WeatherForecasts,
+): TemplateResult {
+  // Only render if we have hourly forecasts and weather is enabled for events
+  const showEventWeather =
+    config.weather?.entity &&
+    (config.weather.position === 'event' || config.weather.position === 'both');
+
+  if (!showEventWeather || !weatherForecasts?.hourly) {
+    return html``;
+  }
+
+  // Find the appropriate forecast for this event
+  const forecast = Weather.findForecastForEvent(event, weatherForecasts.hourly);
+
+  if (!forecast) {
+    return html``;
+  }
+
+  // Get styling and options from config
+  const showTemp = config.weather?.show_conditions !== false;
+  const iconSize = config.weather?.event?.icon_size || '14px';
+  const fontSize = config.weather?.event?.font_size || '12px';
+  const color = config.weather?.event?.color || 'var(--secondary-text-color)';
+
+  return html`
+    <div class="event-weather">
+      <ha-icon .icon=${forecast.icon} style="--mdc-icon-size: ${iconSize};"></ha-icon>
+      ${showTemp
+        ? html`
+            <span style="font-size: ${fontSize}; color: ${color};"> ${forecast.temperature}° </span>
+          `
+        : nothing}
+    </div>
   `;
 }

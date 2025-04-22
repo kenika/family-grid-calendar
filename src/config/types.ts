@@ -292,9 +292,46 @@ export interface Hass {
   };
   connection?: {
     subscribeEvents: (callback: (event: unknown) => void, eventType: string) => Promise<() => void>;
-    subscribeMessage: (callback: (message: any) => void, options: any) => () => void;
+    subscribeMessage: (
+      callback: (message: WeatherForecastMessage) => void,
+      options: SubscribeMessageOptions,
+    ) => () => void;
   };
-  formatEntityState?: (stateObj: any, state: string) => string;
+  formatEntityState?: (stateObj: HassEntity, state: string) => string;
+}
+
+/**
+ * Weather forecast message structure received from Home Assistant
+ */
+export interface WeatherForecastMessage {
+  forecast: WeatherForecast[];
+  forecast_type?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Home Assistant subscribe message options
+ */
+export interface SubscribeMessageOptions {
+  type: string;
+  entity_id: string;
+  forecast_type?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Home Assistant state object type
+ */
+export interface HassEntity {
+  state: string;
+  attributes: Record<string, unknown>;
+  last_changed?: string;
+  last_updated?: string;
+  context?: {
+    id?: string;
+    parent_id?: string;
+    user_id?: string | null;
+  };
 }
 
 /**

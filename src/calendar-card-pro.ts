@@ -203,6 +203,14 @@ class CalendarCardPro extends LitElement {
     ) {
       this._language = Localize.getEffectiveLanguage(this.config.language, this.hass?.locale);
     }
+
+    // Check if weather config has changed
+    if (
+      changedProps.has('config') &&
+      this.config?.weather?.entity !== (changedProps.get('config') as Types.Config)?.weather?.entity
+    ) {
+      this._setupWeatherSubscriptions();
+    }
   }
 
   //-----------------------------------------------------------------------------
@@ -504,6 +512,9 @@ class CalendarCardPro extends LitElement {
       Logger.error('Failed to update events:', error);
       this.isLoading = false;
     }
+
+    // Ensure we have weather forecast subscriptions too
+    this._setupWeatherSubscriptions();
   }
 
   /**

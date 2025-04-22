@@ -69,7 +69,7 @@ export function generateCustomPropertiesObject(config: Types.Config): Record<str
     '--calendar-card-weather-event-icon-size': config.weather?.event?.icon_size || '14px',
     '--calendar-card-weather-event-font-size': config.weather?.event?.font_size || '12px',
     '--calendar-card-weather-event-color':
-      config.weather?.event?.color || 'var(--secondary-text-color)',
+      config.weather?.event?.color || 'var(--primary-text-color)',
   };
 
   // Optional properties
@@ -405,8 +405,6 @@ export const cardStyles = css`
     }
   }
 
-  /* Weather styles */
-
   /* Date column weather */
   .date-column .weather {
     display: flex;
@@ -430,27 +428,6 @@ export const cardStyles = css`
 
   .weather-temp-low {
     opacity: 0.8;
-  }
-
-  /* Event weather */
-  .event-weather {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    margin-left: auto;
-  }
-
-  .summary-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-  }
-
-  .summary {
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 
   /* ===== EVENT STYLES ===== */
@@ -490,6 +467,19 @@ export const cardStyles = css`
     flex-direction: column;
   }
 
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+  .summary {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .event-title {
     font-size: var(--calendar-card-font-size-event);
     font-weight: 500;
@@ -518,6 +508,17 @@ export const cardStyles = css`
     width: auto;
     vertical-align: middle;
     margin-right: 4px;
+  }
+
+  /* Event weather */
+  .event-weather {
+    display: flex;
+    margin-left: 8px;
+    margin-right: 12px;
+  }
+
+  .event-weather ha-icon {
+    margin-right: 1px;
   }
 
   /* ===== TIME & LOCATION STYLES ===== */

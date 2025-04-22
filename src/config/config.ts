@@ -125,7 +125,7 @@ export const DEFAULT_CONFIG: Types.Config = {
     event: {
       icon_size: '14px',
       font_size: '12px',
-      color: 'var(--secondary-text-color)',
+      color: 'var(--primary-text-color)',
     },
   },
 
