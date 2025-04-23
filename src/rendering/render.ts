@@ -512,12 +512,13 @@ function renderDateColumn(
     const dailyForecast = Weather.findDailyForecast(date, weatherForecasts.daily);
 
     if (dailyForecast) {
-      const showConditions = config.weather?.show_conditions !== false;
-      const showHighTemp = config.weather?.show_high_temp === true;
-      const showLowTemp = config.weather?.show_low_temp === true && dailyForecast.templow;
-
-      // Get styling from config or defaults
+      // Get options from date-specific config
       const dateConfig = config.weather?.date || {};
+      const showConditions = dateConfig.show_conditions !== false;
+      const showHighTemp = dateConfig.show_high_temp !== false;
+      const showLowTemp = dateConfig.show_low_temp === true && dailyForecast.templow;
+
+      // Get styling from config
       const iconSize = dateConfig.icon_size || '14px';
       const fontSize = dateConfig.font_size || '12px';
       const color = dateConfig.color || 'var(--primary-text-color)';
@@ -984,7 +985,7 @@ function renderEventWeather(
   config: Types.Config,
   weatherForecasts?: Types.WeatherForecasts,
 ): TemplateResult {
-  // Only render if we have hourly forecasts and weather is enabled for events
+  // Only render if weather is enabled for events
   const showEventWeather =
     config.weather?.entity &&
     (config.weather.position === 'event' || config.weather.position === 'both');
@@ -993,26 +994,37 @@ function renderEventWeather(
     return html``;
   }
 
-  // Find the appropriate forecast for this event
-  const forecast = Weather.findForecastForEvent(event, weatherForecasts.hourly);
+  // Find the appropriate forecast - pass both hourly and daily forecasts
+  const forecast = Weather.findForecastForEvent(
+    event,
+    weatherForecasts.hourly,
+    weatherForecasts.daily,
+  );
 
   if (!forecast) {
     return html``;
   }
 
-  // Get styling and options from config
-  const showTemp = config.weather?.show_conditions !== false;
-  const iconSize = config.weather?.event?.icon_size || '14px';
-  const fontSize = config.weather?.event?.font_size || '12px';
-  const color = config.weather?.event?.color || 'var(--secondary-text-color)';
+  // Get options from event-specific config
+  const eventConfig = config.weather?.event || {};
+  const showConditions = eventConfig.show_conditions !== false;
+  const showTemp = eventConfig.show_temp !== false;
 
+  // Get styling from config
+  const iconSize = eventConfig.icon_size || '14px';
+  const fontSize = eventConfig.font_size || '12px';
+  const color = eventConfig.color || 'var(--secondary-text-color)';
+
+  // Render weather with position-specific options
   return html`
     <div class="event-weather">
-      <ha-icon .icon=${forecast.icon} style="--mdc-icon-size: ${iconSize};"></ha-icon>
+      ${showConditions
+        ? html`<ha-icon .icon=${forecast.icon} style="--mdc-icon-size: ${iconSize};"></ha-icon>`
+        : nothing}
       ${showTemp
-        ? html`
-            <span style="font-size: ${fontSize}; color: ${color};"> ${forecast.temperature}° </span>
-          `
+        ? html`<span style="font-size: ${fontSize}; color: ${color};">
+            ${forecast.temperature}°
+          </span>`
         : nothing}
     </div>
   `;

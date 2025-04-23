@@ -114,15 +114,17 @@ export const DEFAULT_CONFIG: Types.Config = {
   weather: {
     entity: undefined,
     position: 'date',
-    show_conditions: true,
-    show_high_temp: true,
-    show_low_temp: false,
     date: {
+      show_conditions: true,
+      show_high_temp: true,
+      show_low_temp: false,
       icon_size: '14px',
       font_size: '12px',
       color: 'var(--primary-text-color)',
     },
     event: {
+      show_conditions: true,
+      show_temp: true,
       icon_size: '14px',
       font_size: '12px',
       color: 'var(--primary-text-color)',

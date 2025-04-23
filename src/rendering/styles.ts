@@ -513,12 +513,13 @@ export const cardStyles = css`
   /* Event weather */
   .event-weather {
     display: flex;
+    font-weight: 500;
     margin-left: 8px;
     margin-right: 12px;
   }
 
   .event-weather ha-icon {
-    margin-right: 1px;
+    margin-right: 2px;
   }
 
   /* ===== TIME & LOCATION STYLES ===== */

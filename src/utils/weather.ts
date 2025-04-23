@@ -130,16 +130,28 @@ export function findDailyForecast(
 }
 
 /**
- * Find the hourly forecast closest to an event's start time
+ * Find the appropriate forecast for an event
+ * Uses hourly forecast for timed events, daily forecast for all-day events
  *
  * @param event Calendar event
  * @param hourlyForecasts Hourly forecasts record
- * @returns Weather data for the event time or undefined
+ * @param dailyForecasts Daily forecasts record
+ * @returns Weather data for the event or undefined
  */
 export function findForecastForEvent(
   event: Types.CalendarEventData,
   hourlyForecasts: Record<string, Types.WeatherData>,
+  dailyForecasts?: Record<string, Types.WeatherData>,
 ): Types.WeatherData | undefined {
+  // For all-day events (with start.date but no start.dateTime)
+  if (event.start.date && !event.start.dateTime && dailyForecasts) {
+    // Use the daily forecast for the event date
+    const eventDate = FormatUtils.parseAllDayDate(event.start.date);
+    const dateKey = FormatUtils.getLocalDateKey(eventDate);
+    return dailyForecasts[dateKey];
+  }
+
+  // For regular events with start.dateTime
   if (!event.start.dateTime || !hourlyForecasts) {
     return undefined;
   }

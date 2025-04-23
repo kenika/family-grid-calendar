@@ -144,6 +144,10 @@ export interface EntityConfig {
  * Weather position-specific styling configuration
  */
 export interface WeatherPositionConfig {
+  show_conditions?: boolean;
+  show_high_temp?: boolean;
+  show_low_temp?: boolean;
+  show_temp?: boolean;
   icon_size?: string;
   font_size?: string;
   color?: string;
@@ -155,9 +159,6 @@ export interface WeatherPositionConfig {
 export interface WeatherConfig {
   entity?: string;
   position?: 'date' | 'event' | 'both';
-  show_conditions?: boolean;
-  show_high_temp?: boolean;
-  show_low_temp?: boolean;
   date?: WeatherPositionConfig;
   event?: WeatherPositionConfig;
 }
