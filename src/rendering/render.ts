@@ -994,6 +994,17 @@ function renderEventWeather(
     return html``;
   }
 
+  // Check if this is a timed event (has dateTime) that has ended
+  if (event.end?.dateTime) {
+    const now = new Date();
+    const eventEndTime = new Date(event.end.dateTime);
+
+    // If event has ended, don't show weather
+    if (eventEndTime < now) {
+      return html``;
+    }
+  }
+
   // Find the appropriate forecast - pass both hourly and daily forecasts
   const forecast = Weather.findForecastForEvent(
     event,
