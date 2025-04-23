@@ -20,6 +20,7 @@ import esTranslations from './languages/es.json';
 import fiTranslations from './languages/fi.json';
 import frTranslations from './languages/fr.json';
 import heTranslations from './languages/he.json';
+import hrTranslations from './languages/hr.json';
 import huTranslations from './languages/hu.json';
 import isTranslations from './languages/is.json';
 import itTranslations from './languages/it.json';
@@ -54,6 +55,7 @@ export const TRANSLATIONS: Record<string, Types.Translations> = {
   fi: fiTranslations,
   fr: frTranslations,
   he: heTranslations,
+  hr: hrTranslations,
   hu: huTranslations,
   is: isTranslations,
   it: itTranslations,
@@ -192,8 +194,8 @@ export function translate(
 export function getDateFormatStyle(language: string): 'day-dot-month' | 'month-day' | 'day-month' {
   const lang = language?.toLowerCase() || '';
 
-  // German uses day with dot, then month (e.g., "17. Mar")
-  if (lang === 'de') {
+  // German and Croatian use day with dot, then month (e.g., "17. Mar")
+  if (lang === 'de' || lang === 'hr' ) {
     return 'day-dot-month';
   }
 
