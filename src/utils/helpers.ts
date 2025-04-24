@@ -187,3 +187,88 @@ export function hashString(str: string): string {
   // Convert to alphanumeric string
   return Math.abs(hash).toString(36);
 }
+
+//-----------------------------------------------------------------------------
+// LOCALE & FORMATTING UTILITIES
+//-----------------------------------------------------------------------------
+
+/**
+ * Determines whether to use 24-hour time format based on Home Assistant settings
+ *
+ * This function examines Home Assistant locale settings to determine the
+ * appropriate time format. It handles explicit settings (24h/12h), language-based
+ * preferences, and system preferences by checking browser/OS settings.
+ *
+ * @param locale - Home Assistant locale object
+ * @param fallbackTo24h - Whether to default to 24h format if detection fails
+ * @returns Boolean indicating whether to use 24-hour format
+ */
+export function getTimeFormat24h(
+  locale?: { time_format?: string; language?: string },
+  fallbackTo24h: boolean = true,
+): boolean {
+  if (!locale) return fallbackTo24h;
+
+  // Handle different time_format values
+  if (locale.time_format === '24') {
+    return true;
+  } else if (locale.time_format === '12') {
+    return false;
+  } else if (locale.time_format === 'language' && locale.language) {
+    // Use language to determine format
+    return is24HourByLanguage(locale.language);
+  } else if (locale.time_format === 'system') {
+    // Handle 'system' setting by detecting browser/OS preference
+    try {
+      // Create a formatter without specifying hour12 option
+      const formatter = new Intl.DateTimeFormat(navigator.language, {
+        hour: 'numeric',
+      });
+      // Format afternoon time (13:00) and check if it has AM/PM markers
+      const formattedTime = formatter.format(new Date(2000, 0, 1, 13, 0, 0));
+      return !formattedTime.match(/AM|PM|am|pm/);
+    } catch (e) {
+      // Default to language-based detection on error
+      return locale.language ? is24HourByLanguage(locale.language) : fallbackTo24h;
+    }
+  }
+
+  // Default to fallback value for other cases
+  return fallbackTo24h;
+
+  // Internal helper function for language-based detection
+  function is24HourByLanguage(language: string): boolean {
+    // Languages/locales that typically use 24h format
+    const likely24hLanguages = [
+      'de',
+      'fr',
+      'es',
+      'it',
+      'pt',
+      'nl',
+      'ru',
+      'pl',
+      'sv',
+      'no',
+      'fi',
+      'da',
+      'cs',
+      'sk',
+      'sl',
+      'hr',
+      'hu',
+      'ro',
+      'bg',
+      'el',
+      'tr',
+      'zh',
+      'ja',
+      'ko',
+    ];
+
+    // Extract base language code (e.g., 'de-AT' -> 'de')
+    const baseLanguage = language.split('-')[0].toLowerCase();
+
+    return likely24hLanguages.includes(baseLanguage);
+  }
+}

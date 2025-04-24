@@ -96,7 +96,7 @@ export interface Config {
   empty_day_color: string;
   show_time: boolean;
   show_single_allday_time: boolean;
-  time_24h: boolean;
+  time_24h: boolean | 'system';
   show_end_time: boolean;
   time_font_size: string;
   time_color: string;
@@ -290,6 +290,7 @@ export interface Hass {
   callService: (domain: string, service: string, serviceData?: object) => void;
   locale?: {
     language: string;
+    time_format?: string;
   };
   connection?: {
     subscribeEvents: (callback: (event: unknown) => void, eventType: string) => Promise<() => void>;

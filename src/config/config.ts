@@ -99,7 +99,7 @@ export const DEFAULT_CONFIG: Types.Config = {
   empty_day_color: 'var(--primary-text-color)',
   show_time: true,
   show_single_allday_time: true,
-  time_24h: true,
+  time_24h: 'system',
   show_end_time: true,
   time_font_size: '12px',
   time_color: 'var(--secondary-text-color)',

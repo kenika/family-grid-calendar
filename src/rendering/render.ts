@@ -597,6 +597,7 @@ export function renderDay(
   prevDay?: Types.EventsByDay,
   boundaryInfo?: { isNewWeek: boolean; isNewMonth: boolean },
   weatherForecasts?: Types.WeatherForecasts,
+  hass?: Types.Hass | null,
 ): TemplateResult {
   // Check if this day is today
   const now = new Date();
@@ -645,7 +646,7 @@ export function renderDay(
         day.events,
         (event, index) => `${event._entityId}-${event.summary}-${index}`,
         (event, index) =>
-          renderEvent(event, day, index, config, language, isToday, weatherForecasts),
+          renderEvent(event, day, index, config, language, isToday, weatherForecasts, hass),
       )}
     </table>
   `;
@@ -660,6 +661,7 @@ export function renderGroupedEvents(
   config: Types.Config,
   language: string,
   weatherForecasts?: Types.WeatherForecasts,
+  hass?: Types.Hass | null,
 ): TemplateResult {
   return html`
     ${days.map((day, index) => {
@@ -719,7 +721,8 @@ export function renderGroupedEvents(
       }
 
       return html`
-        ${separator} ${renderDay(day, config, language, prevDay, boundaryInfo, weatherForecasts)}
+        ${separator}
+        ${renderDay(day, config, language, prevDay, boundaryInfo, weatherForecasts, hass)}
       `;
     })}
   `;
@@ -743,6 +746,7 @@ export function renderEvent(
   language: string,
   isToday: boolean,
   weatherForecasts?: Types.WeatherForecasts,
+  hass?: Types.Hass | null,
 ): TemplateResult {
   // Add CSS class for empty days
   const isEmptyDay = Boolean(event._isEmptyDay);
@@ -849,7 +853,7 @@ export function renderEvent(
     isRunning && config.show_progress_bar ? EventUtils.calculateEventProgress(event) : null;
 
   // Format event time and location
-  const eventTime = FormatUtils.formatEventTime(event, config, language);
+  const eventTime = FormatUtils.formatEventTime(event, config, language, hass);
   const eventLocation =
     event.location && showLocation
       ? FormatUtils.formatLocation(event.location, config.remove_location_country)

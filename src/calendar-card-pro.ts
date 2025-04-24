@@ -580,6 +580,7 @@ class CalendarCardPro extends LitElement {
         this.config,
         this.effectiveLanguage,
         this.weatherForecasts,
+        this.safeHass,
       );
     } else {
       // Normal state with events - use renderGroupedEvents to handle week numbers and separators
@@ -588,6 +589,7 @@ class CalendarCardPro extends LitElement {
         this.config,
         this.effectiveLanguage,
         this.weatherForecasts,
+        this.safeHass,
       );
     }
 

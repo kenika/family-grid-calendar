@@ -8,6 +8,7 @@
 import * as Types from '../config/types';
 import * as Localize from '../translations/localize';
 import * as Constants from '../config/constants';
+import * as Helpers from './helpers';
 import { getRelativeTimeString } from '../translations/dayjs';
 
 //-----------------------------------------------------------------------------
@@ -20,15 +21,17 @@ import { getRelativeTimeString } from '../translations/dayjs';
  * Generates a human-readable time string for calendar events
  * handling all-day events, multi-day events, and regular events
  *
- * @param event - The calendar event to format
- * @param config - Card configuration options
- * @param language - Language code for translations
+ * @param event Calendar event
+ * @param config Card configuration
+ * @param language Language code
+ * @param hass Home Assistant object for system time format detection
  * @returns Formatted time string
  */
 export function formatEventTime(
   event: Types.CalendarEventData,
   config: Types.Config,
-  language: string = 'en',
+  language: string,
+  hass?: Types.Hass | null,
 ): string {
   const isAllDayEvent = !event.start.dateTime;
 
@@ -63,16 +66,35 @@ export function formatEventTime(
     return capitalizeFirstLetter(translations.allDay);
   }
 
+  // Determine whether to use native HA formatting
+  const useNativeFormatting = !!(config.time_24h === 'system' && hass?.locale);
+  const use24h = config.time_24h === true;
+
   // Handle multi-day events with start/end times
   if (startDate.toDateString() !== endDate.toDateString()) {
     return capitalizeFirstLetter(
-      formatMultiDayTime(startDate, endDate, language, translations, config.time_24h),
+      formatMultiDayTime(
+        startDate,
+        endDate,
+        language,
+        translations,
+        useNativeFormatting,
+        use24h,
+        hass,
+      ),
     );
   }
 
   // Single day event with start/end times
   return capitalizeFirstLetter(
-    formatSingleDayTime(startDate, endDate, config.show_end_time, config.time_24h),
+    formatSingleDayTime(
+      startDate,
+      endDate,
+      config.show_end_time,
+      useNativeFormatting,
+      use24h,
+      hass,
+    ),
   );
 }
 
@@ -325,11 +347,24 @@ function formatSingleDayTime(
   startDate: Date,
   endDate: Date,
   showEndTime: boolean,
-  time24h: boolean,
+  useNativeFormatting: boolean,
+  use24h: boolean = true,
+  hass?: Types.Hass | null,
 ): string {
+  if (useNativeFormatting && hass?.locale) {
+    // Use the helper to determine time format preference
+    const use24hFormat = Helpers.getTimeFormat24h(hass.locale, use24h);
+
+    // Use our formatter with the detected format preference
+    return showEndTime
+      ? `${formatTime(startDate, use24hFormat)} - ${formatTime(endDate, use24hFormat)}`
+      : formatTime(startDate, use24hFormat);
+  }
+
+  // For explicit settings, use our formatter with the specified format
   return showEndTime
-    ? `${formatTime(startDate, time24h)} - ${formatTime(endDate, time24h)}`
-    : formatTime(startDate, time24h);
+    ? `${formatTime(startDate, use24h)} - ${formatTime(endDate, use24h)}`
+    : formatTime(startDate, use24h);
 }
 
 /**
@@ -347,28 +382,40 @@ function formatMultiDayTime(
   endDate: Date,
   language: string,
   translations: Types.Translations,
-  time24h: boolean,
+  useNativeFormatting: boolean,
+  use24h: boolean = true,
+  hass?: Types.Hass | null,
 ): string {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
+  // Helper function for time formatting
+  const formatTimeStr = (date: Date) => {
+    if (useNativeFormatting && hass?.locale) {
+      // Use the helper to determine time format preference
+      const use24hFormat = Helpers.getTimeFormat24h(hass.locale, use24h);
+      return formatTime(date, use24hFormat);
+    }
+    return formatTime(date, use24h);
+  };
+
   // Format the end time part based on when the event ends
   let endPart: string;
 
   if (endDate.toDateString() === today.toDateString()) {
     // Event ends today
-    endPart = `${translations.endsToday} ${translations.at} ${formatTime(endDate, time24h)}`;
+    endPart = `${translations.endsToday} ${translations.at} ${formatTimeStr(endDate)}`;
   } else if (endDate.toDateString() === tomorrow.toDateString()) {
     // Event ends tomorrow
-    endPart = `${translations.endsTomorrow} ${translations.at} ${formatTime(endDate, time24h)}`;
+    endPart = `${translations.endsTomorrow} ${translations.at} ${formatTimeStr(endDate)}`;
   } else {
     // Event ends beyond tomorrow
     const endDay = endDate.getDate();
     const endMonthName = translations.months[endDate.getMonth()];
     const endWeekday = translations.fullDaysOfWeek[endDate.getDay()];
-    const endTimeStr = formatTime(endDate, time24h);
+    const endTimeStr = formatTimeStr(endDate);
     const formatStyle = Localize.getDateFormatStyle(language);
 
     // Format based on language style
@@ -389,7 +436,7 @@ function formatMultiDayTime(
   // Check if today is on or before the start date
   // If so, include the start time in the output
   if (today.getTime() <= startDate.getTime()) {
-    const startTimeStr = formatTime(startDate, time24h);
+    const startTimeStr = formatTimeStr(startDate);
     return `${startTimeStr} ${translations.multiDay} ${endPart}`;
   } else {
     // Event has already started - check if it ends today or tomorrow
