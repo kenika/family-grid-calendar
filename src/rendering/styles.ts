@@ -58,7 +58,7 @@ export function generateCustomPropertiesObject(config: Types.Config): Record<str
     // Custom empty day color with opacity for default value
     '--calendar-card-empty-day-color':
       config.empty_day_color === Config.DEFAULT_CONFIG.empty_day_color
-        ? 'rgba(var(--rgb-primary-text-color, 255, 255, 255), 0.6)'
+        ? 'color-mix(in srgb, var(--primary-text-color) 60%, transparent)'
         : config.empty_day_color,
 
     // Weather styling properties

@@ -960,7 +960,7 @@ export function renderEventTitle(
 ): TemplateResult {
   const isEmptyDay = !!event._isEmptyDay;
   const entityColor = isEmptyDay
-    ? config.empty_day_color
+    ? 'var(--calendar-card-empty-day-color)'
     : event._matchedConfig?.color || config.event_color;
 
   return html`
