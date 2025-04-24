@@ -34,13 +34,13 @@ export interface Config {
 
   // Layout and spacing
   background_color: string;
+  accent_color: string;
+  vertical_line_width: string;
   day_spacing: string;
   event_spacing: string;
   additional_card_spacing: string;
   max_height: string;
   height: string;
-  vertical_line_width: string;
-  vertical_line_color: string;
 
   /** @deprecated Use day_separator_width instead. Will be removed in v3.0 */
   horizontal_line_width: string;

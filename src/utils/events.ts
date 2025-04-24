@@ -992,11 +992,11 @@ export function getEntityAccentColorWithOpacity(
     );
   }
 
-  // Get base color - whether from entity config or from vertical_line_color config
+  // Get base color - whether from entity config or from accent_color config
   const baseColor =
     typeof entityConfig === 'string'
-      ? config.vertical_line_color // Use vertical_line_color for simple entity strings
-      : entityConfig?.accent_color || config.vertical_line_color;
+      ? config.accent_color // Use accent_color for simple entity strings
+      : entityConfig?.accent_color || config.accent_color;
 
   // Explicitly check if opacity is undefined or 0
   // If opacity is undefined, 0, or NaN, return the base color with no transparency

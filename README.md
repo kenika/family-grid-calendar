@@ -1100,13 +1100,13 @@ These examples demonstrate how Calendar Card Pro can be customized to match any 
 | `title_color`                              | string            | `--calendar-card-color-title`                      | Card title font color                                                                                                                                                                                                                                       |
 | **Layout and Spacing**                     |                   |                                                    |                                                                                                                                                                                                                                                             |
 | `background_color`                         | string            | `--ha-card-background`                             | Card background color                                                                                                                                                                                                                                       |
+| `accent_color`                             | string            | `#03a9f4`                                          | Vertical line separator color                                                                                                                                                                                                                               |
+| `vertical_line_width`                      | string            | `2px`                                              | Vertical line separator width                                                                                                                                                                                                                               |
 | `day_spacing`                              | string            | `5px`                                              | Spacing between different calendar day rows (replaces row_spacing)                                                                                                                                                                                          |
 | `event_spacing`                            | string            | `4px`                                              | Vertical padding within each event                                                                                                                                                                                                                          |
 | `additional_card_spacing`                  | string            | `0px`                                              | Additional top/bottom padding for the card                                                                                                                                                                                                                  |
 | `height`                                   | string            | `auto`                                             | Sets a fixed, exact height for the card regardless of content amount (always this height, never more or less)                                                                                                                                               |
 | `max_height`                               | string            | `none`                                             | Allows the card to grow with content up to this maximum height limit                                                                                                                                                                                        |
-| `vertical_line_width                       | string            | `2px`                                              | Vertical line separator width                                                                                                                                                                                                                               |
-| `vertical_line_color`                      | string            | `#03a9f4`                                          | Vertical line separator color                                                                                                                                                                                                                               |
 | **Week Numbers and Horizontal Separators** |                   |                                                    |                                                                                                                                                                                                                                                             |
 | `show_week_numbers`                        | string            | `null`                                             | Week number display method ('iso', 'simple', or null to disable)                                                                                                                                                                                            |
 | `show_current_week_number`                 | boolean           | `true`                                             | Whether to show week number for the first/current week in view                                                                                                                                                                                              |
@@ -1302,12 +1302,14 @@ title_color: '#baf1ff'
 
 # Layout and Spacing
 background_color: '#eeeeee50'
+accent_color: '#baf1ff'
+vertical_line_width: 0px
 row_spacing: 10px
 additional_card_spacing: 0px
-vertical_line_width: 0px
-vertical_line_color: '#baf1ff'
-horizontal_line_width: 2px
-horizontal_line_color: '#baf1ff80'
+
+# Week Numbers and Horizontal Separators
+day_separator_width: 2px
+day_separator_color: '#baf1ff80'
 
 # Date Column
 date_vertical_alignment: middle

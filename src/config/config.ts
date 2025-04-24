@@ -37,13 +37,13 @@ export const DEFAULT_CONFIG: Types.Config = {
 
   // Layout and spacing
   background_color: 'var(--ha-card-background)',
+  accent_color: '#03a9f4',
+  vertical_line_width: '2px',
   day_spacing: '10px',
   event_spacing: '4px',
   additional_card_spacing: '0px',
   height: 'auto',
   max_height: 'none',
-  vertical_line_width: '2px',
-  vertical_line_color: '#03a9f4',
 
   /** @deprecated Use day_separator_width instead. Will be removed in v3.0 */
   horizontal_line_width: '0px',

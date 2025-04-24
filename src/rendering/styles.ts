@@ -26,7 +26,7 @@ export function generateCustomPropertiesObject(config: Types.Config): Record<str
     '--calendar-card-color-event': config.event_color,
     '--calendar-card-color-time': config.time_color,
     '--calendar-card-color-location': config.location_color,
-    '--calendar-card-line-color-vertical': config.vertical_line_color,
+    '--calendar-card-line-color-vertical': config.accent_color,
     '--calendar-card-line-width-vertical': config.vertical_line_width,
     '--calendar-card-day-spacing': config.day_spacing,
     '--calendar-card-event-spacing': config.event_spacing,
@@ -42,9 +42,9 @@ export function generateCustomPropertiesObject(config: Types.Config): Record<str
     '--calendar-card-date-column-vertical-alignment': config.date_vertical_alignment,
     '--calendar-card-event-border-radius': 'calc(var(--ha-card-border-radius, 10px) / 2)',
     '--ha-ripple-hover-opacity': '0.04',
-    '--ha-ripple-hover-color': config.vertical_line_color,
+    '--ha-ripple-hover-color': config.accent_color,
     '--ha-ripple-pressed-opacity': '0.12',
-    '--ha-ripple-pressed-color': config.vertical_line_color,
+    '--ha-ripple-pressed-color': config.accent_color,
 
     // Today indicator settings
     '--calendar-card-today-indicator-color': config.today_indicator_color,
