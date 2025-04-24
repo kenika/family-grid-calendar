@@ -1378,7 +1378,7 @@ Want to improve **Calendar Card Pro**? I welcome contributions of all kinds—wh
 
 I am continuously working on improving **Calendar Card Pro**. Here’s what’s planned for upcoming releases:
 
-- **Enhanced Event Details** – Support for event descriptions, recurring event indicators, and more.
+- **Enhanced Event Details** – Support for event descriptions, and more.
 - **Visual Configuration Editor** – Configure all options through an intuitive UI without writing YAML.
 - **Expanded Language Support** – Adding more languages (looking for community translations).
 
