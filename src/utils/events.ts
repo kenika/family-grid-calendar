@@ -317,7 +317,7 @@ export function groupEventsByDay(
     .slice(0, effectiveDaysToShow || 3);
 
   // Apply entity-specific event limits first (pre-filtering)
-  // This happens before the global max_events_to_show limit is applied
+  // This happens before the global compact_events_to_show limit is applied
   if (!isExpanded) {
     // Create a map to track how many events we've seen from each entity
     const entityEventCounts = new Map<string, number>();
@@ -354,11 +354,9 @@ export function groupEventsByDay(
           continue;
         }
 
-        // Get entity-specific max_events_to_show (if set)
+        // Get entity-specific compact_events_to_show (if set)
         const entityMaxEvents =
-          typeof entityConfig === 'object'
-            ? (entityConfig.compact_events_to_show ?? entityConfig.max_events_to_show)
-            : undefined;
+          typeof entityConfig === 'object' ? entityConfig.compact_events_to_show : undefined;
 
         // If no entity-specific limit, include the event
         if (entityMaxEvents === undefined) {
@@ -384,10 +382,9 @@ export function groupEventsByDay(
   }
 
   // Apply events limit if configured and not expanded (compact mode event limiting)
-  // Consider both max_events_to_show (legacy) and compact_events_to_show (new)
   if (!isExpanded) {
-    // Get the effective max events setting (compact_events_to_show takes precedence over max_events_to_show)
-    const maxEvents = config.compact_events_to_show ?? config.max_events_to_show;
+    // Get the effective max events setting
+    const maxEvents = config.compact_events_to_show;
 
     if (maxEvents !== undefined) {
       let filteredDays: Types.EventsByDay[] = [];

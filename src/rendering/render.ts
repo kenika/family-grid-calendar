@@ -608,25 +608,24 @@ export function renderDay(
   // Separator precedence hierarchy (highest to lowest):
   // 1. Month boundaries (with month separator enabled)
   // 2. Week boundaries (with week separator or week numbers enabled)
-  // 3. Regular day boundaries (with regular horizontal line enabled)
+  // 3. Regular day boundaries (with regular day separator enabled)
   // Only render the highest precedence separator that applies
 
   let daySeparator: TemplateResult | typeof nothing = nothing;
 
-  // Only add a regular horizontal line separator between days IF:
+  // Only add a regular day separator between days IF:
   // 1. This is not the first day displayed (prevDay exists)
   // 2. This is not a month boundary with month separators enabled
   // 3. This is not a week boundary with week separators or week numbers enabled
-  // 4. Horizontal line width is not zero
+  // 4. Day separator width is not zero
   const isMonthBoundary = boundaryInfo?.isNewMonth || false;
   const isWeekBoundary = boundaryInfo?.isNewWeek || false;
   const hasMonthSeparator = isMonthBoundary && config.month_separator_width !== '0px';
   const hasWeekSeparator =
     isWeekBoundary && (config.show_week_numbers !== null || config.week_separator_width !== '0px');
 
-  // Use day_separator_width with fallback to horizontal_line_width
-  const daySeparatorWidth = config.day_separator_width || config.horizontal_line_width;
-  const daySeparatorColor = config.day_separator_color || config.horizontal_line_color;
+  const daySeparatorWidth = config.day_separator_width;
+  const daySeparatorColor = config.day_separator_color;
 
   if (prevDay && daySeparatorWidth !== '0px' && !hasMonthSeparator && !hasWeekSeparator) {
     const separatorStyle = createSeparatorStyle(

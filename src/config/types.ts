@@ -24,9 +24,6 @@ export interface Config {
   split_multiday_events: boolean;
   language?: string;
 
-  /** @deprecated Use compact_events_to_show instead. Will be removed in v3.0 */
-  max_events_to_show?: number;
-
   // Header
   title?: string;
   title_font_size?: string;
@@ -41,11 +38,6 @@ export interface Config {
   additional_card_spacing: string;
   max_height: string;
   height: string;
-
-  /** @deprecated Use day_separator_width instead. Will be removed in v3.0 */
-  horizontal_line_width: string;
-  /** @deprecated Use day_separator_color instead. Will be removed in v3.0 */
-  horizontal_line_color: string;
 
   // Week numbers and horizontal separators
   first_day_of_week: 'sunday' | 'monday' | 'system';
@@ -133,9 +125,6 @@ export interface EntityConfig {
   blocklist?: string;
   allowlist?: string;
   split_multiday_events?: boolean;
-
-  /** @deprecated Use compact_events_to_show instead. Will be removed in v3.0 */
-  max_events_to_show?: number;
 }
 
 // Add these interfaces to src/config/types.ts

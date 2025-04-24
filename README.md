@@ -59,9 +59,17 @@ Built with **performance in mind**, the card leverages **intelligent refresh mec
 
 ## 2️⃣ What's New
 
-### Latest Release v3.0
+### Latest Release: v3.0
 
-- 🌦️ **Weather Integration**: Display [weather forecasts](#-weather-integration) alongside your calendar events with customizable options per position
+- **🌦️ Weather Integration**: Display [weather forecasts](#weather-integration) alongside your events
+- **🕒 Improved Time Format Detection**: Automatically detects and respects all Home Assistant time format settings (12h, 24h, language-based, and system-based)
+- **⚠️ Breaking Changes**: The following parameters have been removed or renamed:
+  - `vertical_line_color` → `accent_color` (renamed to better reflect its purpose)
+  - `max_events_to_show` → `compact_events_to_show` (removed, use the replacement)
+  - `horizontal_line_width` → `day_separator_width` (removed, use the replacement)
+  - `horizontal_line_color` → `day_separator_color` (removed, use the replacement)
+
+### View the [Full Release Notes](RELEASE_NOTES.md) for a complete list of features.
 
 ### v2.4
 
@@ -335,7 +343,6 @@ days_to_show: 7
 
 # Event limit for compact mode
 compact_events_to_show: 5 # Preferred: New parameter name
-max_events_to_show: 5 # Legacy parameter: Same function, will be deprecated in v3.0
 
 # Day limit in compact mode
 compact_days_to_show: 2 # Fewer days to display in compact mode
@@ -882,14 +889,14 @@ One of Calendar Card Pro's most powerful features is the ability to toggle betwe
 
 ```yaml
 # Limit events in compact view
-max_events_to_show: 5
+compact_events_to_show: 5
 
 # Enable expand/collapse with tap
 tap_action:
   action: expand
 ```
 
-When a `max_events_to_show` limit is set, the card displays that number of events initially, adding a subtle indicator when more events are available. The `expand` action then allows users to toggle between this compact view and the full list of events.
+When a `compact_events_to_show` limit is set, the card displays that number of events initially, adding a subtle indicator when more events are available. The `expand` action then allows users to toggle between this compact view and the full list of events.
 
 When using expansion with both global and per-calendar limits:
 
@@ -905,12 +912,12 @@ entities:
   - entity: calendar.family
     # No limit for family calendar
   - entity: calendar.work
-    max_events_to_show: 2
+    compact_events_to_show: 2
     # Never show more than 2 work events
   - entity: calendar.holidays
-    max_events_to_show: 1
+    compact_events_to_show: 1
     # Only show 1 holiday event
-max_events_to_show: 4
+compact_events_to_show: 4
 # Show at most 4 events total in compact mode
 
 tap_action:
@@ -1089,7 +1096,6 @@ These examples demonstrate how Calendar Card Pro can be customized to match any 
 | `compact_days_to_show`                     | number            | -                                                  | Number of days to display in compact mode                                                                                                                                                                                                                   |
 | `compact_events_to_show`                   | number            | -                                                  | Number of events to show in compact mode                                                                                                                                                                                                                    |
 | `compact_events_complete_days`             | boolean           | `false`                                            | When true, shows all events for days that have at least one event displayed                                                                                                                                                                                 |
-| `max_events_to_show`                       | number            | -                                                  | **Deprecated** - Use compact_events_to_show instead                                                                                                                                                                                                         |
 | `show_empty_days`                          | boolean           | `false`                                            | Whether to show days with no events (with "No events" message)                                                                                                                                                                                              |
 | `filter_duplicates`                        | boolean           | `false`                                            | Remove duplicate events that appear in multiple calendars                                                                                                                                                                                                   |
 | `split_multiday_events`                    | boolean           | `false`                                            | Display multi-day events on each day they cover                                                                                                                                                                                                             |
@@ -1120,8 +1126,6 @@ These examples demonstrate how Calendar Card Pro can be customized to match any 
 | `week_separator_color`                     | string            | `#03a9f450`                                        | Color of separator line between weeks                                                                                                                                                                                                                       |
 | `month_separator_width`                    | string            | `0px`                                              | Width of separator line between months                                                                                                                                                                                                                      |
 | `month_separator_color`                    | string            | `var(--primary-text-color)`                        | Color of separator line between months                                                                                                                                                                                                                      |
-| `horizontal_line_width`                    | string            | `0px`                                              | **Deprecated** - Use day_separator_width instead                                                                                                                                                                                                            |
-| `horizontal_line_color`                    | string            | `var(--secondary-text-color)`                      | **Deprecated** - Use day_separator_color instead                                                                                                                                                                                                            |
 | **Today Indicator**                        |                   |                                                    |
 | `today_indicator`                          | boolean or string | `false`                                            | Today indicator type: `true`/`dot` (basic dot), `pulse` (animated dot), `glow` (glowing effect), custom MDI icon (e.g., `mdi:star`), emoji, or image path                                                                                                   |
 | `today_indicator_position`                 | string            | `15% 50%`                                          | Position of today indicator in CSS-like format (x% y%)                                                                                                                                                                                                      |

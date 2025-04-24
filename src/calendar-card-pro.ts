@@ -423,19 +423,6 @@ class CalendarCardPro extends LitElement {
     let mergedConfig = { ...Config.DEFAULT_CONFIG, ...config };
 
     //============================================================================
-    // DEPRECATED PARAMETERS HANDLING - WILL BE REMOVED IN v3.0
-    // The following code provides backwards compatibility for deprecated parameters
-    // horizontal_line_width -> day_separator_width
-    // horizontal_line_color -> day_separator_color
-    //============================================================================
-    if (!config.day_separator_width && config.horizontal_line_width) {
-      mergedConfig.day_separator_width = config.horizontal_line_width;
-    }
-
-    if (!config.day_separator_color && config.horizontal_line_color) {
-      mergedConfig.day_separator_color = config.horizontal_line_color;
-    }
-    //============================================================================
     // END OF DEPRECATED PARAMETERS HANDLING
     //============================================================================
 
@@ -521,11 +508,7 @@ class CalendarCardPro extends LitElement {
    * Toggle expanded state for view modes with limited events
    */
   toggleExpanded(): void {
-    if (
-      this.config.max_events_to_show ||
-      this.config.compact_events_to_show ||
-      this.config.compact_days_to_show
-    ) {
+    if (this.config.compact_events_to_show || this.config.compact_days_to_show) {
       this.isExpanded = !this.isExpanded;
     }
   }
