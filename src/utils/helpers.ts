@@ -227,7 +227,7 @@ export function getTimeFormat24h(
       // Format afternoon time (13:00) and check if it has AM/PM markers
       const formattedTime = formatter.format(new Date(2000, 0, 1, 13, 0, 0));
       return !formattedTime.match(/AM|PM|am|pm/);
-    } catch (e) {
+    } catch {
       // Default to language-based detection on error
       return locale.language ? is24HourByLanguage(locale.language) : fallbackTo24h;
     }
