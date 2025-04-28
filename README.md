@@ -63,11 +63,11 @@ Built with **performance in mind**, the card leverages **intelligent refresh mec
 
 - **🌦️ Weather Integration**: Display [weather forecasts](#weather-integration) alongside your events
 - **🕒 Improved Time Format Detection**: Automatically detects and respects all Home Assistant time format settings (12h, 24h, language-based, and system-based)
-- **⚠️ Breaking Changes**: The following parameters have been removed or renamed:
-  - `vertical_line_color` → `accent_color` (renamed to better reflect its purpose)
-  - `max_events_to_show` → `compact_events_to_show` (removed, use the replacement)
-  - `horizontal_line_width` → `day_separator_width` (removed, use the replacement)
-  - `horizontal_line_color` → `day_separator_color` (removed, use the replacement)
+- **⚠️ Breaking Changes**: The following parameters have been removed or renamed, please update your configurations:
+  - `vertical_line_color` → `accent_color`
+  - `max_events_to_show` → `compact_events_to_show`
+  - `horizontal_line_width` → `day_separator_width`
+  - `horizontal_line_color` → `day_separator_color`
 
 ### View the [Full Release Notes](RELEASE_NOTES.md) for a complete list of features.
 
