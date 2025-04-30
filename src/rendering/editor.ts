@@ -2,28 +2,1367 @@
 /**
  * Editor component for Calendar Card Pro
  *
- * This is a placeholder for the future UI editor implementation.
- * It will provide a visual interface for configuring the calendar card.
+ * This provides a visual interface for configuring the calendar card.
  */
 
+import { html, LitElement, TemplateResult } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
+import styles from './editor.styles';
 import * as Types from '../config/types';
+import * as Config from '../config/config';
+import * as Localize from '../translations/localize';
+
+// Import Material Design icons
+import {
+  mdiCalendarMultiple, // For Calendar Entities main panel
+  mdiCalendar, // For individual calendar entities
+  mdiCalendarMonth, // For Core Settings
+  mdiPalette, // For Appearance & Layout
+  mdiCalendarToday, // For Date Display
+  mdiCardText, // For Event Display
+  mdiWeatherPartlyCloudy, // For Weather Integration
+  mdiGestureTapHold, // For Interactions
+} from '@mdi/js';
 
 /**
  * Calendar Card Pro Editor component
  *
- * This component will handle the visual configuration of the card.
- * Currently implemented as a placeholder for future development.
+ * This component handles the visual configuration of the card.
  */
-export class CalendarCardProEditor extends HTMLElement {
+@customElement('calendar-card-pro-dev-editor')
+export class CalendarCardProEditor extends LitElement {
+  static get styles() {
+    return styles;
+  }
+
+  @property({ attribute: false }) hass?: Types.Hass;
+  @property({ attribute: false }) _config?: Types.Config;
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    this.loadCustomElements();
+  }
+
+  async loadCustomElements(): Promise<void> {
+    if (!customElements.get('ha-entity-picker')) {
+      try {
+        const huiElement = customElements.get('hui-entities-card');
+        if (huiElement && typeof (huiElement as any).getConfigElement === 'function') {
+          await (huiElement as any).getConfigElement();
+        } else {
+          // Fallback if method doesn't exist
+          console.warn('Could not load ha-entity-picker: getConfigElement not available');
+        }
+      } catch (e) {
+        console.warn('Could not load ha-entity-picker', e);
+      }
+    }
+  }
+
+  setConfig(config: Partial<Types.Config>): void {
+    this._config = { ...Config.DEFAULT_CONFIG, ...config };
+  }
+
   /**
-   * Set the configuration for this editor
-   *
-   * @param config - Partial configuration object
+   * Translation helper with smart fallback for editor translations
    */
-  public setConfig(_config: Readonly<Partial<Types.Config>>): void {
-    // Will be implemented in the future when we build the UI editor
-    // This is currently a placeholder
+  private _getTranslation(key: string): string {
+    // Get requested language
+    const requestedLang = this._config?.language || this.hass?.locale?.language || 'en';
+
+    // Properly prefix editor keys unless they already have the prefix
+    const translationKey = key.includes('.') ? key : `editor.${key}`;
+    const isEditorTranslation = translationKey.startsWith('editor.');
+
+    // If this is an editor translation, check if translations exist in the requested language
+    // If not, fall back to English only for editor translations
+    const langToUse =
+      isEditorTranslation && !Localize.hasEditorTranslations(requestedLang) ? 'en' : requestedLang;
+
+    // Get translation using appropriate language
+    return Localize.translate(langToUse, translationKey as any, key) as string;
+  }
+
+  /**
+   * Get configuration value from config object using dot notation
+   * Handles special cases for certain configuration properties
+   */
+  getConfigValue(path: string, defaultValue?: any): any {
+    if (!this._config) {
+      return defaultValue;
+    }
+
+    // Handle simple top-level properties
+    if (!path.includes('.')) {
+      let value = this._config[path] ?? defaultValue;
+
+      // Handle special cases for string/boolean conversions in the UI
+      if (path === 'time_24h') {
+        // For the dropdown selection in the UI, we need string values
+        if (value === true) return 'true';
+        if (value === false) return 'false';
+        // 'system' stays as a string
+      }
+
+      return value;
+    }
+
+    // Handle nested properties with dot notation
+    const pathParts = path.split('.');
+    let current: any = this._config;
+
+    for (const part of pathParts) {
+      if (current === undefined || current === null) {
+        return defaultValue;
+      }
+
+      // Handle array indices
+      if (/^\d+$/.test(part)) {
+        const index = parseInt(part, 10);
+        if (Array.isArray(current) && index >= 0 && index < current.length) {
+          current = current[index];
+          continue;
+        }
+        return defaultValue;
+      }
+
+      // Handle object properties
+      if (typeof current === 'object' && part in current) {
+        current = current[part];
+      } else {
+        return defaultValue;
+      }
+    }
+
+    return current ?? defaultValue;
+  }
+
+  /**
+   * Set configuration value using dot notation
+   * Handles special cases for certain configuration properties
+   */
+  setConfigValue(path: string, value: any): void {
+    if (!this._config) {
+      return;
+    }
+
+    // Handle special cases for string/boolean conversions
+    if (path === 'time_24h') {
+      if (value === 'true') {
+        value = true; // Convert string 'true' to boolean true
+      } else if (value === 'false') {
+        value = false; // Convert string 'false' to boolean false
+      }
+      // 'system' remains as string
+    }
+
+    // Create a deep copy of the config
+    const config = JSON.parse(JSON.stringify(this._config));
+
+    // Handle simple top-level properties
+    if (!path.includes('.')) {
+      if (value === undefined) {
+        // Only delete if undefined, preserve empty strings
+        delete config[path];
+      } else {
+        // Store all other values, including empty strings
+        config[path] = value;
+      }
+      this._fireConfigChanged(config);
+      return;
+    }
+
+    // Handle nested properties with dot notation
+    const pathParts = path.split('.');
+    const lastPart = pathParts.pop()!;
+    let current = config;
+
+    for (const part of pathParts) {
+      // Handle array indices
+      if (/^\d+$/.test(part)) {
+        const index = parseInt(part, 10);
+        if (!Array.isArray(current)) {
+          current = [];
+        }
+        while (current.length <= index) {
+          current.push({});
+        }
+        if (!current[index] || typeof current[index] !== 'object') {
+          current[index] = {};
+        }
+        current = current[index];
+        continue;
+      }
+
+      // Handle object properties
+      if (!current[part] || typeof current[part] !== 'object') {
+        current[part] = {};
+      }
+      current = current[part];
+    }
+
+    // Set or delete the final value
+    if (value === undefined) {
+      // Only delete if undefined, preserve empty strings
+      delete current[lastPart];
+    } else {
+      // Store all other values, including empty strings
+      current[lastPart] = value;
+    }
+
+    this._fireConfigChanged(config);
+  }
+
+  /**
+   * Fire config changed event to update card configuration
+   */
+  private _fireConfigChanged(config: Types.Config): void {
+    this._config = config;
+    this.dispatchEvent(new CustomEvent('config-changed', { detail: { config } }));
+  }
+
+  /**
+   * Handle value changes from inputs
+   */
+  _valueChanged(event: Event): void {
+    if (!event.target) return;
+
+    event.stopPropagation();
+
+    const target = event.target as HTMLInputElement | HTMLSelectElement;
+    const name = target.getAttribute('name');
+
+    if (!name) return;
+
+    // Handle special cases for mode selectors
+    if (name === 'language_mode') {
+      const mode = target.value;
+
+      if (mode === 'system') {
+        // Remove language setting when using system default
+        this.setConfigValue('language', undefined);
+      } else if (mode === 'custom') {
+        // Set a default language if none exists
+        if (!this.getConfigValue('language')) {
+          this.setConfigValue('language', 'en');
+        }
+      }
+      return;
+    } else if (name === 'height_mode') {
+      const mode = target.value;
+
+      // Save the current height/max_height values before clearing them
+      const currentHeight = this.getConfigValue('height');
+      const currentMaxHeight = this.getConfigValue('max_height');
+
+      // Clear out both height settings
+      this.setConfigValue('height', undefined);
+      this.setConfigValue('max_height', undefined);
+
+      if (mode === 'fixed') {
+        // Use the current height value if it exists, otherwise set default
+        this.setConfigValue(
+          'height',
+          currentHeight && currentHeight !== 'auto' ? currentHeight : '300px',
+        );
+      } else if (mode === 'maximum') {
+        // Use the current max_height value if it exists and isn't "none", otherwise set default
+        this.setConfigValue(
+          'max_height',
+          currentMaxHeight && currentMaxHeight !== 'none' ? currentMaxHeight : '300px',
+        );
+      }
+      return;
+    }
+
+    let value: string | boolean | number = target.value;
+
+    // Handle switch/checkbox values
+    if (target.tagName === 'HA-SWITCH') {
+      value = (target as any).checked;
+    }
+
+    // Handle numeric inputs
+    if (target.getAttribute('type') === 'number' && value !== '') {
+      value = parseFloat(value as string);
+    }
+
+    this.setConfigValue(name, value);
+  }
+
+  /**
+   * Handle service data changes (JSON inputs)
+   */
+  _serviceDataChanged(event: Event): void {
+    if (!event.target) return;
+
+    const target = event.target as HTMLInputElement;
+    const name = target.getAttribute('name');
+
+    if (!name) return;
+
+    let value = target.value;
+
+    try {
+      // Parse JSON and store as object
+      value = value ? JSON.parse(value) : {};
+      this.setConfigValue(name, value);
+    } catch (e) {
+      // Invalid JSON - don't update
+    }
+  }
+
+  render() {
+    if (!this.hass || !this._config) {
+      return html``;
+    }
+
+    return html`
+      <div class="card-config">
+        <!-- CALENDAR ENTITIES -->
+        ${this.addExpansionPanel(
+          this._getTranslation('calendar_entities'),
+          mdiCalendarMultiple,
+          html` ${this._renderCalendarEntities()} `,
+          true, // expanded by default
+        )}
+
+        <!-- CORE SETTINGS -->
+        ${this.addExpansionPanel(
+          this._getTranslation('core_settings'),
+          mdiCalendarMonth,
+          html`
+            <!-- Display Range -->
+            <h3>${this._getTranslation('time_range')}</h3>
+            <div class="helper-text">${this._getTranslation('time_range_note')}</div>
+            ${this.addTextField('days_to_show', this._getTranslation('days_to_show'), 'number')}
+            <div class="helper-text">${this._getTranslation('days_to_show_note')}</div>
+            ${this.addTextField('start_date', this._getTranslation('start_date'))}
+            <div class="helper-text">${this._getTranslation('start_date_note')}</div>
+
+            <!-- Compact Mode -->
+            <h3>${this._getTranslation('compact_mode')}</h3>
+            <div class="helper-text">${this._getTranslation('compact_mode_note')}</div>
+            ${this.addTextField(
+              'compact_days_to_show',
+              this._getTranslation('compact_days_to_show'),
+              'number',
+            )}
+            ${this.addTextField(
+              'compact_events_to_show',
+              this._getTranslation('compact_events_to_show'),
+              'number',
+            )}
+            ${this.addBooleanField(
+              'compact_events_complete_days',
+              this._getTranslation('compact_events_complete_days'),
+            )}
+            <div class="helper-text">
+              ${this._getTranslation('compact_events_complete_days_note')}
+            </div>
+
+            <!-- Event Visibility -->
+            <h3>${this._getTranslation('event_visibility')}</h3>
+            ${this.addBooleanField('show_past_events', this._getTranslation('show_past_events'))}
+            ${this.addBooleanField('show_empty_days', this._getTranslation('show_empty_days'))}
+            ${this.addBooleanField('filter_duplicates', this._getTranslation('filter_duplicates'))}
+
+            <!-- Language & Time Formats -->
+            <h3>${this._getTranslation('language_time_formats')}</h3>
+            ${this.addSelectField(
+              'language_mode',
+              this._getTranslation('language_mode'),
+              [
+                { value: 'system', label: this._getTranslation('system') },
+                { value: 'custom', label: this._getTranslation('custom') },
+              ],
+              false,
+              this.getConfigValue('language') !== undefined ? 'custom' : 'system',
+            )}
+            ${(() => {
+              return this.getConfigValue('language') !== undefined
+                ? html`
+                    ${this.addTextField('language', this._getTranslation('language_code'))}
+                    <div class="helper-text">${this._getTranslation('language_code_note')}</div>
+                  `
+                : html``;
+            })()}
+            ${this.addSelectField('time_24h', this._getTranslation('time_24h'), [
+              { value: 'system', label: this._getTranslation('system') },
+              { value: 'true', label: this._getTranslation('24h') },
+              { value: 'false', label: this._getTranslation('12h') },
+            ])}
+          `,
+        )}
+
+        <!-- APPEARANCE & LAYOUT -->
+        ${this.addExpansionPanel(
+          this._getTranslation('appearance_layout'),
+          mdiPalette,
+          html`
+            <!-- Title Styling -->
+            <h3>${this._getTranslation('title_styling')}</h3>
+            ${this.addTextField('title', this._getTranslation('title'))}
+            ${this.addTextField('title_font_size', this._getTranslation('title_font_size'))}
+            ${this.addTextField('title_color', this._getTranslation('title_color'))}
+
+            <!-- Card Styling -->
+            <h3>${this._getTranslation('card_styling')}</h3>
+            ${this.addTextField('background_color', this._getTranslation('background_color'))}
+
+            <!-- Height Control -->
+            <h3>${this._getTranslation('height_control')}</h3>
+            ${this.addSelectField(
+              'height_mode',
+              this._getTranslation('height_mode'),
+              [
+                { value: 'auto', label: this._getTranslation('auto') },
+                { value: 'fixed', label: this._getTranslation('fixed') },
+                { value: 'maximum', label: this._getTranslation('maximum') },
+              ],
+              false,
+              (() => {
+                if (
+                  this.getConfigValue('height') !== undefined &&
+                  this.getConfigValue('height') !== 'auto'
+                ) {
+                  return 'fixed';
+                } else if (
+                  this.getConfigValue('max_height') !== undefined &&
+                  this.getConfigValue('max_height') !== 'none'
+                ) {
+                  return 'maximum';
+                }
+                return 'auto';
+              })(),
+            )}
+            ${(() => {
+              if (
+                this.getConfigValue('height') !== undefined &&
+                this.getConfigValue('height') !== 'auto'
+              ) {
+                return html`
+                  ${this.addTextField('height', this._getTranslation('height_value'))}
+                  <div class="helper-text">${this._getTranslation('fixed_height_note')}</div>
+                `;
+              } else if (
+                this.getConfigValue('max_height') !== undefined &&
+                this.getConfigValue('max_height') !== 'none'
+              ) {
+                return html`
+                  ${this.addTextField('max_height', this._getTranslation('height_value'))}
+                  <div class="helper-text">${this._getTranslation('max_height_note')}</div>
+                `;
+              }
+              return html``;
+            })()}
+
+            <!-- Event Styling -->
+            <h3>${this._getTranslation('event_styling')}</h3>
+            ${this.addTextField('accent_color', this._getTranslation('accent_color'))}
+            ${this.addTextField(
+              'event_background_opacity',
+              this._getTranslation('event_background_opacity'),
+              'number',
+            )}
+            ${this.addTextField('vertical_line_width', this._getTranslation('vertical_line_width'))}
+
+            <!-- Spacing & Alignment -->
+            <h3>${this._getTranslation('spacing_alignment')}</h3>
+            ${this.addTextField('day_spacing', this._getTranslation('day_spacing'))}
+            ${this.addTextField('event_spacing', this._getTranslation('event_spacing'))}
+            ${this.addTextField(
+              'additional_card_spacing',
+              this._getTranslation('additional_card_spacing'),
+            )}
+          `,
+        )}
+
+        <!-- DATE DISPLAY -->
+        ${this.addExpansionPanel(
+          this._getTranslation('date_display'),
+          mdiCalendarToday,
+          html`
+            <!-- Date Column Formatting -->
+            <h3>${this._getTranslation('date_column_formatting')}</h3>
+            ${this.addSelectField(
+              'date_vertical_alignment',
+              this._getTranslation('date_vertical_alignment'),
+              [
+                { value: 'top', label: this._getTranslation('top') },
+                { value: 'middle', label: this._getTranslation('middle') },
+                { value: 'bottom', label: this._getTranslation('bottom') },
+              ],
+            )}
+            ${this.addTextField('weekday_font_size', this._getTranslation('weekday_font_size'))}
+            ${this.addTextField('weekday_color', this._getTranslation('weekday_color'))}
+            ${this.addTextField('day_font_size', this._getTranslation('day_font_size'))}
+            ${this.addTextField('day_color', this._getTranslation('day_color'))}
+            ${this.addBooleanField('show_month', this._getTranslation('show_month'))}
+            ${this.addTextField('month_font_size', this._getTranslation('month_font_size'))}
+            ${this.addTextField('month_color', this._getTranslation('month_color'))}
+
+            <!-- Weekend Formatting -->
+            <h3>${this._getTranslation('weekend_formatting')}</h3>
+            ${this.addTextField(
+              'weekend_weekday_color',
+              this._getTranslation('weekend_weekday_color'),
+            )}
+            ${this.addTextField('weekend_day_color', this._getTranslation('weekend_day_color'))}
+            ${this.addTextField('weekend_month_color', this._getTranslation('weekend_month_color'))}
+
+            <!-- Today Highlighting -->
+            <h3>${this._getTranslation('today_highlighting')}</h3>
+            ${this.addTextField('today_weekday_color', this._getTranslation('today_weekday_color'))}
+            ${this.addTextField('today_day_color', this._getTranslation('today_day_color'))}
+            ${this.addTextField('today_month_color', this._getTranslation('today_month_color'))}
+            ${this.addTodayIndicatorField(
+              'today_indicator',
+              this._getTranslation('today_indicator'),
+            )}
+            ${this.addTextField(
+              'today_indicator_position',
+              this._getTranslation('today_indicator_position'),
+            )}
+            ${this.addTextField(
+              'today_indicator_color',
+              this._getTranslation('today_indicator_color'),
+            )}
+            ${this.addTextField(
+              'today_indicator_size',
+              this._getTranslation('today_indicator_size'),
+            )}
+
+            <!-- Week Numbers & Separators -->
+            <h3>${this._getTranslation('week_numbers_separators')}</h3>
+            ${this.addSelectField('first_day_of_week', this._getTranslation('first_day_of_week'), [
+              { value: 'sunday', label: this._getTranslation('sunday') },
+              { value: 'monday', label: this._getTranslation('monday') },
+              { value: 'system', label: this._getTranslation('system') },
+            ])}
+            ${this.addSelectField(
+              'show_week_numbers',
+              this._getTranslation('show_week_numbers'),
+              [
+                { value: '', label: this._getTranslation('none') },
+                { value: 'iso', label: 'ISO' },
+                { value: 'simple', label: this._getTranslation('simple') },
+              ],
+              true,
+            )}
+            ${this.addBooleanField(
+              'show_current_week_number',
+              this._getTranslation('show_current_week_number'),
+            )}
+            ${this.addTextField(
+              'week_number_font_size',
+              this._getTranslation('week_number_font_size'),
+            )}
+            ${this.addTextField('week_number_color', this._getTranslation('week_number_color'))}
+            ${this.addTextField(
+              'week_number_background_color',
+              this._getTranslation('week_number_background_color'),
+            )}
+            ${this.addTextField('day_separator_width', this._getTranslation('day_separator_width'))}
+            ${this.addTextField('day_separator_color', this._getTranslation('day_separator_color'))}
+            ${this.addTextField(
+              'week_separator_width',
+              this._getTranslation('week_separator_width'),
+            )}
+            ${this.addTextField(
+              'week_separator_color',
+              this._getTranslation('week_separator_color'),
+            )}
+            ${this.addTextField(
+              'month_separator_width',
+              this._getTranslation('month_separator_width'),
+            )}
+            ${this.addTextField(
+              'month_separator_color',
+              this._getTranslation('month_separator_color'),
+            )}
+          `,
+        )}
+
+        <!-- EVENT DISPLAY -->
+        ${this.addExpansionPanel(
+          this._getTranslation('event_display'),
+          mdiCardText,
+          html`
+            <!-- Event Content -->
+            <h3>${this._getTranslation('event_content')}</h3>
+            ${this.addTextField('event_font_size', this._getTranslation('event_font_size'))}
+            ${this.addTextField('event_color', this._getTranslation('event_color'))}
+            ${this.addTextField('empty_day_color', this._getTranslation('empty_day_color'))}
+
+            <!-- Time Display -->
+            <h3>${this._getTranslation('time_display')}</h3>
+            ${this.addBooleanField('show_time', this._getTranslation('show_time'))}
+            ${this.addBooleanField(
+              'show_single_allday_time',
+              this._getTranslation('show_single_allday_time'),
+            )}
+            ${this.addBooleanField('show_end_time', this._getTranslation('show_end_time'))}
+            ${this.addTextField('time_font_size', this._getTranslation('time_font_size'))}
+            ${this.addTextField('time_color', this._getTranslation('time_color'))}
+            ${this.addTextField('time_icon_size', this._getTranslation('time_icon_size'))}
+
+            <!-- Location Display -->
+            <h3>${this._getTranslation('location_display')}</h3>
+            ${this.addBooleanField('show_location', this._getTranslation('show_location'))}
+            ${this.addTextField(
+              'remove_location_country',
+              this._getTranslation('remove_location_country'),
+            )}
+            ${this.addTextField('location_font_size', this._getTranslation('location_font_size'))}
+            ${this.addTextField('location_color', this._getTranslation('location_color'))}
+            ${this.addTextField('location_icon_size', this._getTranslation('location_icon_size'))}
+
+            <!-- Progress Indicators -->
+            <h3>${this._getTranslation('progress_indicators')}</h3>
+            ${this.addBooleanField('show_countdown', this._getTranslation('show_countdown'))}
+            ${this.addBooleanField('show_progress_bar', this._getTranslation('show_progress_bar'))}
+            ${this.addTextField('progress_bar_color', this._getTranslation('progress_bar_color'))}
+            ${this.addTextField('progress_bar_height', this._getTranslation('progress_bar_height'))}
+            ${this.addTextField('progress_bar_width', this._getTranslation('progress_bar_width'))}
+
+            <!-- Multi-day Event Handling -->
+            <h3>${this._getTranslation('multiday_event_handling')}</h3>
+            ${this.addBooleanField(
+              'split_multiday_events',
+              this._getTranslation('split_multiday_events'),
+            )}
+          `,
+        )}
+
+        <!-- WEATHER INTEGRATION -->
+        ${this.addExpansionPanel(
+          this._getTranslation('weather_integration'),
+          mdiWeatherPartlyCloudy,
+          html`
+            <!-- Weather Entity & Position -->
+            <h3>${this._getTranslation('weather_entity_position')}</h3>
+            ${this.addEntityPickerField('weather.entity', this._getTranslation('weather_entity'), [
+              'weather',
+            ])}
+            ${this.addSelectField('weather.position', this._getTranslation('weather_position'), [
+              { value: 'none', label: this._getTranslation('none') },
+              { value: 'date', label: this._getTranslation('date') },
+              { value: 'event', label: this._getTranslation('event') },
+              { value: 'both', label: this._getTranslation('both') },
+            ])}
+
+            <!-- Conditionally render weather settings based on selected position -->
+            ${(() => {
+              const position = this.getConfigValue('weather.position', 'none');
+              return html`
+                ${position === 'date' || position === 'both'
+                  ? html`
+                      <!-- Date Column Weather -->
+                      <h3>${this._getTranslation('date_column_weather')}</h3>
+                      ${this.addBooleanField(
+                        'weather.date.show_conditions',
+                        this._getTranslation('show_conditions'),
+                      )}
+                      ${this.addBooleanField(
+                        'weather.date.show_high_temp',
+                        this._getTranslation('show_high_temp'),
+                      )}
+                      ${this.addBooleanField(
+                        'weather.date.show_low_temp',
+                        this._getTranslation('show_low_temp'),
+                      )}
+                      ${this.addTextField(
+                        'weather.date.icon_size',
+                        this._getTranslation('icon_size'),
+                      )}
+                      ${this.addTextField(
+                        'weather.date.font_size',
+                        this._getTranslation('font_size'),
+                      )}
+                      ${this.addTextField('weather.date.color', this._getTranslation('color'))}
+                    `
+                  : html``}
+                ${position === 'event' || position === 'both'
+                  ? html`
+                      <!-- Event Row Weather -->
+                      <h3>${this._getTranslation('event_row_weather')}</h3>
+                      ${this.addBooleanField(
+                        'weather.event.show_conditions',
+                        this._getTranslation('show_conditions'),
+                      )}
+                      ${this.addBooleanField(
+                        'weather.event.show_temp',
+                        this._getTranslation('show_temp'),
+                      )}
+                      ${this.addTextField(
+                        'weather.event.icon_size',
+                        this._getTranslation('icon_size'),
+                      )}
+                      ${this.addTextField(
+                        'weather.event.font_size',
+                        this._getTranslation('font_size'),
+                      )}
+                      ${this.addTextField('weather.event.color', this._getTranslation('color'))}
+                    `
+                  : html``}
+              `;
+            })()}
+          `,
+        )}
+
+        <!-- INTERACTIONS -->
+        ${this.addExpansionPanel(
+          this._getTranslation('interactions'),
+          mdiGestureTapHold,
+          html`
+            <!-- Tap Action -->
+            <h3>${this._getTranslation('tap_action')}</h3>
+            ${this._renderActionConfig('tap_action')}
+
+            <!-- Hold Action -->
+            <h3>${this._getTranslation('hold_action')}</h3>
+            ${this._renderActionConfig('hold_action')}
+
+            <!-- Refresh Settings -->
+            <h3>${this._getTranslation('refresh_settings')}</h3>
+            ${this.addTextField(
+              'refresh_interval',
+              this._getTranslation('refresh_interval'),
+              'number',
+            )}
+            ${this.addBooleanField(
+              'refresh_on_navigate',
+              this._getTranslation('refresh_on_navigate'),
+            )}
+          `,
+        )}
+      </div>
+    `;
+  }
+
+  /**
+   * Add a text field input
+   */
+  addTextField(name: string, label?: string, type?: string, defaultValue?: string): TemplateResult {
+    let value = this.getConfigValue(name, defaultValue);
+
+    // Convert undefined values to empty strings for better UX
+    if (value === undefined) {
+      value = ''; // Empty string instead of undefined
+    }
+
+    return html`
+      <ha-textfield
+        name="${name}"
+        label="${label ?? this._getTranslation(name)}"
+        type="${type ?? 'text'}"
+        .value="${value}"
+        @keyup="${this._valueChanged}"
+        @change="${this._valueChanged}"
+      ></ha-textfield>
+    `;
+  }
+
+  /**
+   * Add an entity picker field
+   */
+  addEntityPickerField(
+    name: string,
+    label?: string,
+    includeDomains?: string[],
+    defaultValue?: string,
+  ): TemplateResult {
+    return html`
+      <ha-entity-picker
+        .hass="${this.hass}"
+        name="${name}"
+        label="${label ?? this._getTranslation(name)}"
+        .value="${this.getConfigValue(name, defaultValue)}"
+        .includeDomains="${includeDomains}"
+        @change="${this._valueChanged}"
+      ></ha-entity-picker>
+    `;
+  }
+
+  /**
+   * Add a boolean field with switch
+   */
+  addBooleanField(name: string, label?: string, defaultValue?: boolean): TemplateResult {
+    return html`
+      <ha-formfield label="${label ?? this._getTranslation(name)}">
+        <ha-switch
+          name="${name}"
+          .checked="${this.getConfigValue(name, defaultValue)}"
+          @change="${this._valueChanged}"
+        ></ha-switch>
+      </ha-formfield>
+    `;
+  }
+
+  /**
+   * Add a select dropdown field
+   */
+  addSelectField(
+    name: string,
+    label?: string,
+    options?: Array<{ value: string; label: string }>,
+    clearable?: boolean,
+    defaultValue?: string,
+  ): TemplateResult {
+    return html`
+      <ha-select
+        name="${name}"
+        label="${label ?? this._getTranslation(name)}"
+        .value="${this.getConfigValue(name, defaultValue)}"
+        .clearable="${clearable ?? false}"
+        @change="${this._valueChanged}"
+        @closed="${(event: Event) => event.stopPropagation()}"
+      >
+        ${options?.map(
+          (option) => html`
+            <mwc-list-item value="${option.value}">${option.label}</mwc-list-item>
+          `,
+        )}
+      </ha-select>
+    `;
+  }
+
+  /**
+   * Add an expansion panel
+   */
+  addExpansionPanel(
+    header: string,
+    icon: string,
+    content: TemplateResult,
+    expanded?: boolean,
+  ): TemplateResult {
+    return html`
+      <ha-expansion-panel .header="${header}" .expanded="${expanded ?? false}" outlined>
+        <ha-svg-icon slot="leading-icon" .path=${icon}></ha-svg-icon>
+        <div class="panel-content">${content}</div>
+      </ha-expansion-panel>
+    `;
+  }
+
+  /**
+   * Add a button
+   */
+  addButton(text: string, icon: string, clickFunction: () => void): TemplateResult {
+    return html`
+      <ha-button @click="${clickFunction}">
+        <ha-icon icon="${icon}"></ha-icon>
+        ${text}
+      </ha-button>
+    `;
+  }
+
+  /**
+   * Add an icon picker field
+   */
+  addIconPickerField(name: string, label?: string): TemplateResult {
+    return html`
+      <ha-icon-picker
+        .hass="${this.hass}"
+        name="${name}"
+        label="${label ?? this._getTranslation(name)}"
+        .value="${this.getConfigValue(name)}"
+        @value-changed="${(event: CustomEvent) => {
+          this.setConfigValue(name, event.detail.value);
+        }}"
+      ></ha-icon-picker>
+    `;
+  }
+
+  /**
+   * Add a Today Indicator field with specialized UI
+   */
+  addTodayIndicatorField(name: string, label?: string): TemplateResult {
+    // Define options for today indicator
+    const options = [
+      { value: 'none', label: this._getTranslation('none') },
+      { value: 'dot', label: this._getTranslation('dot') },
+      { value: 'pulse', label: this._getTranslation('pulse') },
+      { value: 'glow', label: this._getTranslation('glow') },
+      { value: 'icon', label: this._getTranslation('icon') },
+      { value: 'emoji', label: this._getTranslation('emoji') },
+      { value: 'image', label: this._getTranslation('image') },
+    ];
+
+    return this._renderTypeSelector(
+      name,
+      label ?? this._getTranslation(name),
+      options,
+      'indicator',
+    );
+  }
+
+  /**
+   * Render a calendar entity configuration
+   */
+  _renderCalendarEntity(entity: string | Types.EntityConfig, index: number): TemplateResult {
+    const isStringEntity = typeof entity === 'string';
+    const entityValue = isStringEntity ? entity : entity.entity;
+    const entityLabel = isStringEntity ? entityValue : entity.label || entityValue;
+
+    // Create a panel header that shows both label (if set) and entity ID
+    const panelHeader =
+      isStringEntity || !entity.label
+        ? `${this._getTranslation('calendar')}: ${entityValue}`
+        : `${this._getTranslation('calendar')}: ${entity.label} (${entityValue})`;
+
+    return html`
+      ${this.addExpansionPanel(
+        panelHeader,
+        mdiCalendar,
+        html`
+          <!-- Entity Identification Section -->
+          <div class="editor-section">
+            <h4>${this._getTranslation('entity_identification')}</h4>
+            ${this.addEntityPickerField(
+              `entities.${index}${isStringEntity ? '' : '.entity'}`,
+              this._getTranslation('entity'),
+              ['calendar'],
+            )}
+          </div>
+
+          ${!isStringEntity
+            ? html`
+                <!-- Display Settings Section -->
+                <div class="editor-section">
+                  <h4>${this._getTranslation('display_settings')}</h4>
+
+                  <div class="subsection">
+                    <h5>${this._getTranslation('label')}</h5>
+                    ${(() => {
+                      const path = `entities.${index}.label`;
+                      const options = [
+                        { value: 'none', label: this._getTranslation('none') },
+                        { value: 'text', label: this._getTranslation('text_emoji') },
+                        { value: 'icon', label: this._getTranslation('icon') },
+                        { value: 'image', label: this._getTranslation('image') },
+                      ];
+                      return this._renderTypeSelector(
+                        path,
+                        this._getTranslation('label_type'),
+                        options,
+                        'label',
+                      );
+                    })()}
+                    <div class="helper-text">${this._getTranslation('label_note')}</div>
+                  </div>
+
+                  <div class="subsection">
+                    <h5>${this._getTranslation('colors')}</h5>
+                    ${this.addTextField(`entities.${index}.color`, this._getTranslation('color'))}
+                    <div class="helper-text">${this._getTranslation('entity_color_note')}</div>
+
+                    ${this.addTextField(
+                      `entities.${index}.accent_color`,
+                      this._getTranslation('accent_color'),
+                    )}
+                    <div class="helper-text">
+                      ${this._getTranslation('entity_accent_color_note')}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Event Filtering Section -->
+                <div class="editor-section">
+                  <h4>${this._getTranslation('event_filtering')}</h4>
+                  <div class="helper-text section-note">
+                    ${this._getTranslation('event_filtering_note')}
+                  </div>
+
+                  ${this.addTextField(
+                    `entities.${index}.blocklist`,
+                    this._getTranslation('blocklist'),
+                  )}
+                  <div class="helper-text">${this._getTranslation('blocklist_note')}</div>
+
+                  ${this.addTextField(
+                    `entities.${index}.allowlist`,
+                    this._getTranslation('allowlist'),
+                  )}
+                  <div class="helper-text">${this._getTranslation('allowlist_note')}</div>
+                </div>
+
+                <!-- Entity Overrides Section -->
+                <div class="editor-section">
+                  <h4>${this._getTranslation('entity_overrides')}</h4>
+                  <div class="helper-text section-note">
+                    ${this._getTranslation('entity_overrides_note')}
+                  </div>
+
+                  ${this.addTextField(
+                    `entities.${index}.compact_events_to_show`,
+                    this._getTranslation('compact_events_to_show'),
+                    'number',
+                  )}
+                  <div class="helper-text">
+                    ${this._getTranslation('entity_compact_events_note')}
+                  </div>
+
+                  ${this.addBooleanField(
+                    `entities.${index}.show_time`,
+                    this._getTranslation('show_time'),
+                  )}
+                  <div class="helper-text">${this._getTranslation('entity_show_time_note')}</div>
+
+                  ${this.addBooleanField(
+                    `entities.${index}.show_location`,
+                    this._getTranslation('show_location'),
+                  )}
+                  <div class="helper-text">
+                    ${this._getTranslation('entity_show_location_note')}
+                  </div>
+
+                  ${this.addBooleanField(
+                    `entities.${index}.split_multiday_events`,
+                    this._getTranslation('split_multiday_events'),
+                  )}
+                  <div class="helper-text">
+                    ${this._getTranslation('entity_split_multiday_note')}
+                  </div>
+                </div>
+              `
+            : html``}
+
+          <!-- Entity Action Buttons -->
+          <div class="editor-section button-section">
+            ${this.addButton(this._getTranslation('remove'), 'mdi:trash-can', () =>
+              this._removeCalendarEntity(index),
+            )}
+            ${isStringEntity
+              ? html`
+                  ${this.addButton(
+                    this._getTranslation('convert_to_advanced'),
+                    'mdi:code-json',
+                    () => this._convertEntityToObject(index),
+                  )}
+                `
+              : html``}
+          </div>
+        `,
+      )}
+    `;
+  }
+
+  /**
+   * Render all calendar entities
+   */
+  _renderCalendarEntities(): TemplateResult {
+    const entities = this._config?.entities || [];
+
+    return html`
+      ${entities.map((entity, index) => this._renderCalendarEntity(entity, index))}
+      ${this.addButton(this._getTranslation('add_calendar'), 'mdi:plus', () =>
+        this._addCalendarEntity(),
+      )}
+    `;
+  }
+
+  /**
+   * Add a new calendar entity
+   */
+  _addCalendarEntity(): void {
+    const entities = [...(this._config?.entities || [])];
+    entities.push({ entity: 'calendar.calendar' });
+
+    this.setConfigValue('entities', entities);
+  }
+
+  /**
+   * Remove a calendar entity
+   */
+  _removeCalendarEntity(index: number): void {
+    const entities = [...(this._config?.entities || [])];
+    entities.splice(index, 1);
+    this.setConfigValue('entities', entities);
+  }
+
+  /**
+   * Convert a string entity to an object entity
+   */
+  _convertEntityToObject(index: number): void {
+    const entities = [...(this._config?.entities || [])];
+    const entityValue = entities[index] as string;
+    entities[index] = { entity: entityValue };
+    this.setConfigValue('entities', entities);
+  }
+
+  /**
+   * Render action configuration UI
+   */
+  _renderActionConfig(configKey: string): TemplateResult {
+    const actionConfig = this.getConfigValue(configKey, { action: 'none' });
+    const action = actionConfig.action || 'none';
+
+    return html`
+      <div class="action-config">
+        <ha-select
+          name="${configKey}.action"
+          .value="${action}"
+          @change="${this._valueChanged}"
+          @closed="${(e: Event) => e.stopPropagation()}"
+        >
+          <mwc-list-item value="none">${this._getTranslation('none')}</mwc-list-item>
+          <mwc-list-item value="expand">${this._getTranslation('expand')}</mwc-list-item>
+          <mwc-list-item value="more-info">${this._getTranslation('more_info')}</mwc-list-item>
+          <mwc-list-item value="navigate">${this._getTranslation('navigate')}</mwc-list-item>
+          <mwc-list-item value="url">${this._getTranslation('url')}</mwc-list-item>
+          <mwc-list-item value="call-service"
+            >${this._getTranslation('call_service')}</mwc-list-item
+          >
+        </ha-select>
+
+        ${action === 'navigate'
+          ? html`
+              <ha-textfield
+                name="${configKey}.navigation_path"
+                .value="${actionConfig.navigation_path || ''}"
+                label="${this._getTranslation('navigation_path')}"
+                @change="${this._valueChanged}"
+              ></ha-textfield>
+            `
+          : html``}
+        ${action === 'url'
+          ? html`
+              <ha-textfield
+                name="${configKey}.url_path"
+                .value="${actionConfig.url_path || ''}"
+                label="${this._getTranslation('url_path')}"
+                @change="${this._valueChanged}"
+              ></ha-textfield>
+            `
+          : html``}
+        ${action === 'call-service'
+          ? html`
+              <ha-textfield
+                name="${configKey}.service"
+                .value="${actionConfig.service || ''}"
+                label="${this._getTranslation('service')}"
+                @change="${this._valueChanged}"
+              ></ha-textfield>
+              <ha-textfield
+                name="${configKey}.service_data"
+                .value="${actionConfig.service_data
+                  ? JSON.stringify(actionConfig.service_data)
+                  : '{}'}"
+                label="${this._getTranslation('service_data')}"
+                @change="${this._serviceDataChanged}"
+              ></ha-textfield>
+            `
+          : html``}
+      </div>
+    `;
+  }
+
+  /**
+   * Determine indicator or label type from a value
+   *
+   * @param value The value to analyze
+   * @param context 'indicator' or 'label' to provide context-specific classification
+   * @returns Type classification based on the value and context
+   */
+  getValueType(value: any, context: 'indicator' | 'label' = 'label'): string {
+    // Shared detection for both contexts
+    if (!value || value === false) return 'none';
+
+    // Boolean true is 'dot' for indicators only
+    if (value === true) {
+      return context === 'indicator' ? 'dot' : 'none';
+    }
+
+    // String values - shared logic
+    if (typeof value === 'string') {
+      // Check if value is an MDI icon path
+      if (value.startsWith('mdi:')) return 'icon';
+
+      // Check if value is an image path
+      if (value.startsWith('/') || /\.(jpg|jpeg|png|gif|svg|webp)$/i.test(value)) return 'image';
+
+      // Context-specific logic
+      if (context === 'indicator') {
+        // Check for built-in indicator types
+        if (['dot', 'pulse', 'glow'].includes(value)) return value;
+
+        // Assume emoji for other strings in indicator context
+        return 'emoji';
+      }
+
+      // For label context, everything else is text
+      return 'text';
+    }
+
+    return 'none';
+  }
+
+  /**
+   * Handle value type changes for both indicators and labels
+   */
+  _handleValueTypeChange(
+    event: Event,
+    path: string,
+    currentValue: any,
+    context: 'indicator' | 'label' = 'label',
+  ): void {
+    // Stop event propagation
+    event.stopPropagation();
+
+    const selectedType = (event.target as HTMLSelectElement).value;
+    let newValue: string | boolean | undefined;
+
+    // Shared logic for both contexts
+    if (selectedType === 'none') {
+      newValue = context === 'indicator' ? false : undefined;
+    } else if (selectedType === 'icon') {
+      newValue =
+        typeof currentValue === 'string' && currentValue.startsWith('mdi:')
+          ? currentValue
+          : context === 'indicator'
+            ? 'mdi:star'
+            : 'mdi:calendar';
+    } else if (selectedType === 'image') {
+      if (
+        typeof currentValue === 'string' &&
+        (currentValue.startsWith('/') || /\.(jpg|jpeg|png|gif|svg|webp)$/i.test(currentValue))
+      ) {
+        newValue = currentValue;
+      } else {
+        newValue = context === 'indicator' ? '/local/image.jpg' : '/local/calendar.jpg';
+      }
+    }
+    // Context-specific logic
+    else if (context === 'indicator') {
+      if (['dot', 'pulse', 'glow'].includes(selectedType)) {
+        newValue = selectedType;
+      } else if (selectedType === 'emoji') {
+        // For emoji type, preserve existing emoji if changing from an existing emoji value
+        newValue =
+          typeof currentValue === 'string' &&
+          !currentValue.startsWith('mdi:') &&
+          !/\.(jpg|jpeg|png|gif|svg|webp)$/i.test(currentValue) &&
+          !/^\/local\//i.test(currentValue) &&
+          !['dot', 'pulse', 'glow'].includes(currentValue)
+            ? currentValue // Keep existing emoji
+            : '🗓️'; // Default emoji
+      }
+    } else {
+      // label context
+      if (selectedType === 'text') {
+        // For text/emoji type, preserve existing text if changing from existing text value
+        if (
+          typeof currentValue === 'string' &&
+          this.getValueType(currentValue, 'label') === 'text'
+        ) {
+          newValue = currentValue;
+        } else {
+          newValue = '📅 '; // Default text/emoji for labels
+        }
+      }
+    }
+
+    this.setConfigValue(path, newValue);
+  }
+
+  /**
+   * Render a dropdown selector with conditional fields based on selected type
+   */
+  _renderTypeSelector(
+    path: string,
+    label: string,
+    options: Array<{ value: string; label: string }>,
+    context: 'indicator' | 'label' = 'label',
+  ): TemplateResult {
+    const value = this.getConfigValue(path);
+    const valueType = this.getValueType(value, context);
+
+    // Get a clean icon value if this is an icon type
+    const iconName = typeof value === 'string' && value.startsWith('mdi:') ? value : '';
+
+    return html`
+      <div class="type-selector-field">
+        <ha-select
+          name="${path}_type"
+          label="${label}"
+          .value="${valueType}"
+          @change="${(e: Event) => this._handleValueTypeChange(e, path, value, context)}"
+          @closed="${(e: Event) => e.stopPropagation()}"
+        >
+          ${options.map(
+            (opt) => html` <mwc-list-item value="${opt.value}">${opt.label}</mwc-list-item> `,
+          )}
+        </ha-select>
+
+        ${this._renderTypeField(valueType, path, value, context)}
+      </div>
+    `;
+  }
+
+  /**
+   * Render the appropriate field based on selected value type
+   */
+  _renderTypeField(
+    valueType: string,
+    path: string,
+    value: any,
+    context: 'indicator' | 'label',
+  ): TemplateResult {
+    if (valueType === 'icon') {
+      return html`
+        <div class="icon-picker-wrapper">
+          <ha-icon-picker
+            .hass="${this.hass}"
+            .value="${value}"
+            @value-changed="${(event: CustomEvent) => {
+              // When an icon is selected, add 'mdi:' prefix if needed
+              const selectedIcon = event.detail.value;
+              if (selectedIcon) {
+                const prefixedIcon = selectedIcon.startsWith('mdi:')
+                  ? selectedIcon
+                  : `mdi:${selectedIcon}`;
+                this.setConfigValue(path, prefixedIcon);
+              } else {
+                // Default to dot if cleared for indicator, or empty for label
+                this.setConfigValue(path, context === 'indicator' ? 'dot' : '');
+              }
+            }}"
+          ></ha-icon-picker>
+        </div>
+      `;
+    } else if (valueType === 'emoji' || valueType === 'text') {
+      const fieldLabel =
+        valueType === 'emoji'
+          ? this._getTranslation('emoji_value')
+          : this._getTranslation('text_value');
+
+      const helperText =
+        valueType === 'emoji'
+          ? this._getTranslation('emoji_indicator_note')
+          : this._getTranslation('text_label_note');
+
+      return html`
+        <ha-textfield
+          name="${path}"
+          label="${fieldLabel}"
+          .value="${value}"
+          @change="${this._valueChanged}"
+        ></ha-textfield>
+        <div class="helper-text">${helperText}</div>
+      `;
+    } else if (valueType === 'image') {
+      return html`
+        <ha-textfield
+          name="${path}"
+          label="${this._getTranslation('image_path')}"
+          .value="${value}"
+          @change="${this._valueChanged}"
+        ></ha-textfield>
+        <div class="helper-text">${this._getTranslation('image_indicator_note')}</div>
+      `;
+    }
+
+    return html``;
   }
 }
-
-export {};

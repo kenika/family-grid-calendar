@@ -35,11 +35,11 @@ import * as EventUtils from './utils/events';
 import * as Actions from './interaction/actions';
 import * as Helpers from './utils/helpers';
 import * as Logger from './utils/logger';
-import * as Editor from './rendering/editor';
 import * as Styles from './rendering/styles';
 import * as Feedback from './interaction/feedback';
 import * as Render from './rendering/render';
 import * as Weather from './utils/weather';
+import * as Editor from './rendering/editor';
 
 //-----------------------------------------------------------------------------
 // GLOBAL TYPE DECLARATIONS
@@ -85,6 +85,19 @@ class CalendarCardPro extends LitElement {
     daily: {},
     hourly: {},
   };
+
+  /**
+   * Static method that returns a new instance of the editor
+   * This is how Home Assistant discovers and loads the editor
+   */
+  static getConfigElement() {
+    return document.createElement('calendar-card-pro-dev-editor');
+  }
+
+  /**
+   * Return default stub config for the card
+   */
+  static getStubConfig = Config.getStubConfig;
 
   // Private, non-reactive properties
   private _instanceId = Helpers.generateInstanceId();
@@ -591,12 +604,18 @@ customElements.define('calendar-card-pro-dev-editor', Editor.CalendarCardProEdit
 // Create interface extending CustomElementConstructor to allow getStubConfig property
 interface CalendarCardConstructor extends CustomElementConstructor {
   getStubConfig?: typeof Config.getStubConfig;
+  getConfigElement?: () => HTMLElement;
 }
 
 // Expose getStubConfig for Home Assistant card picker preview
 const element = customElements.get('calendar-card-pro-dev');
 if (element) {
   (element as CalendarCardConstructor).getStubConfig = Config.getStubConfig;
+
+  // Add getConfigElement method to expose the editor component
+  (element as CalendarCardConstructor).getConfigElement = function () {
+    return document.createElement('calendar-card-pro-dev-editor');
+  };
 }
 
 // Register with HACS
