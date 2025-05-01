@@ -409,9 +409,6 @@ export class CalendarCardProEditor extends LitElement {
             <!-- Card Styling -->
             <h3>${this._getTranslation('card_styling')}</h3>
             ${this.addTextField('background_color', this._getTranslation('background_color'))}
-
-            <!-- Height Control -->
-            <h3>${this._getTranslation('height_control')}</h3>
             ${this.addSelectField(
               'height_mode',
               this._getTranslation('height_mode'),
@@ -484,7 +481,7 @@ export class CalendarCardProEditor extends LitElement {
           mdiCalendarToday,
           html`
             <!-- Date Column Formatting -->
-            <h3>${this._getTranslation('date_column_formatting')}</h3>
+            <h3>${this._getTranslation('vertical_alignment')}</h3>
             ${this.addSelectField(
               'date_vertical_alignment',
               this._getTranslation('date_vertical_alignment'),
@@ -494,16 +491,28 @@ export class CalendarCardProEditor extends LitElement {
                 { value: 'bottom', label: this._getTranslation('bottom') },
               ],
             )}
+
+            <!-- Date Column Formatting -->
+            <h3>${this._getTranslation('date_formatting')}</h3>
+
+            <!-- Weekday Formatting -->
+            <h5>${this._getTranslation('weekday_font')}</h5>
             ${this.addTextField('weekday_font_size', this._getTranslation('weekday_font_size'))}
             ${this.addTextField('weekday_color', this._getTranslation('weekday_color'))}
+
+            <!-- Day Formatting -->
+            <h5>${this._getTranslation('day_font')}</h5>
             ${this.addTextField('day_font_size', this._getTranslation('day_font_size'))}
             ${this.addTextField('day_color', this._getTranslation('day_color'))}
+
+            <!-- Month Formatting -->
+            <h5>${this._getTranslation('month_font')}</h5>
             ${this.addBooleanField('show_month', this._getTranslation('show_month'))}
             ${this.addTextField('month_font_size', this._getTranslation('month_font_size'))}
             ${this.addTextField('month_color', this._getTranslation('month_color'))}
 
-            <!-- Weekend Formatting -->
-            <h3>${this._getTranslation('weekend_formatting')}</h3>
+            <!-- Weekend Highlighting -->
+            <h5>${this._getTranslation('weekend_highlighting')}</h5>
             ${this.addTextField(
               'weekend_weekday_color',
               this._getTranslation('weekend_weekday_color'),
@@ -512,75 +521,222 @@ export class CalendarCardProEditor extends LitElement {
             ${this.addTextField('weekend_month_color', this._getTranslation('weekend_month_color'))}
 
             <!-- Today Highlighting -->
-            <h3>${this._getTranslation('today_highlighting')}</h3>
+            <h5>${this._getTranslation('today_highlighting')}</h5>
             ${this.addTextField('today_weekday_color', this._getTranslation('today_weekday_color'))}
             ${this.addTextField('today_day_color', this._getTranslation('today_day_color'))}
             ${this.addTextField('today_month_color', this._getTranslation('today_month_color'))}
+
+            <!-- Today Indicator -->
+            <h3>${this._getTranslation('today_indicator')}</h3>
             ${this.addTodayIndicatorField(
               'today_indicator',
               this._getTranslation('today_indicator'),
             )}
-            ${this.addTextField(
-              'today_indicator_position',
-              this._getTranslation('today_indicator_position'),
-            )}
-            ${this.addTextField(
-              'today_indicator_color',
-              this._getTranslation('today_indicator_color'),
-            )}
-            ${this.addTextField(
-              'today_indicator_size',
-              this._getTranslation('today_indicator_size'),
-            )}
+            ${(() => {
+              const indicatorValue = this.getConfigValue('today_indicator');
+              // Only show additional fields if indicator is enabled (not false, undefined, or "none")
+              if (indicatorValue && indicatorValue !== 'none') {
+                return html`
+                  ${this.addTextField(
+                    'today_indicator_position',
+                    this._getTranslation('today_indicator_position'),
+                  )}
+                  ${this.addTextField(
+                    'today_indicator_color',
+                    this._getTranslation('today_indicator_color'),
+                  )}
+                  ${this.addTextField(
+                    'today_indicator_size',
+                    this._getTranslation('today_indicator_size'),
+                  )}
+                `;
+              }
+              return html``;
+            })()}
 
             <!-- Week Numbers & Separators -->
             <h3>${this._getTranslation('week_numbers_separators')}</h3>
+
+            <!-- Week Numbers -->
+            <h5>${this._getTranslation('week_numbers')}</h5>
             ${this.addSelectField('first_day_of_week', this._getTranslation('first_day_of_week'), [
+              { value: 'system', label: this._getTranslation('system') },
               { value: 'sunday', label: this._getTranslation('sunday') },
               { value: 'monday', label: this._getTranslation('monday') },
-              { value: 'system', label: this._getTranslation('system') },
             ])}
-            ${this.addSelectField(
-              'show_week_numbers',
-              this._getTranslation('show_week_numbers'),
-              [
-                { value: '', label: this._getTranslation('none') },
-                { value: 'iso', label: 'ISO' },
-                { value: 'simple', label: this._getTranslation('simple') },
-              ],
-              true,
-            )}
+            ${this.addSelectField('show_week_numbers', this._getTranslation('show_week_numbers'), [
+              { value: 'null', label: this._getTranslation('none') },
+              { value: 'iso', label: 'ISO' },
+              { value: 'simple', label: this._getTranslation('simple') },
+            ])}
+            ${(() => {
+              const weekNumbersValue = this.getConfigValue('show_week_numbers');
+
+              if (weekNumbersValue === 'iso') {
+                return html`<div class="helper-text">
+                  ${this._getTranslation('week_number_note_iso')}
+                </div>`;
+              } else if (weekNumbersValue === 'simple') {
+                return html`<div class="helper-text">
+                  ${this._getTranslation('week_number_note_simple')}
+                </div>`;
+              }
+
+              return html``;
+            })()}
+            ${(() => {
+              const weekNumbersEnabled = this.getConfigValue('show_week_numbers');
+              if (weekNumbersEnabled && weekNumbersEnabled !== 'null') {
+                return html`
+                  ${this.addBooleanField(
+                    'show_current_week_number',
+                    this._getTranslation('show_current_week_number'),
+                  )}
+                  ${this.addTextField(
+                    'week_number_font_size',
+                    this._getTranslation('week_number_font_size'),
+                  )}
+                  ${this.addTextField(
+                    'week_number_color',
+                    this._getTranslation('week_number_color'),
+                  )}
+                  ${this.addTextField(
+                    'week_number_background_color',
+                    this._getTranslation('week_number_background_color'),
+                  )}
+                `;
+              }
+              return html``;
+            })()}
+
+            <!-- Day Separator -->
+            <h5>${this._getTranslation('day_separator')}</h5>
             ${this.addBooleanField(
-              'show_current_week_number',
-              this._getTranslation('show_current_week_number'),
+              'day_separator_toggle',
+              this._getTranslation('show_day_separator'),
+              this.getConfigValue('day_separator_width') !== '0px' &&
+                this.getConfigValue('day_separator_width') !== '0',
+              (e) => {
+                // Get the toggle state from the event
+                const checked = (e.target as any).checked;
+
+                // Set width based on toggle state
+                if (checked) {
+                  // If toggled ON, set default width
+                  this.setConfigValue('day_separator_width', '1px');
+                } else {
+                  // If toggled OFF, set to 0px to hide
+                  this.setConfigValue('day_separator_width', '0px');
+                }
+              },
             )}
-            ${this.addTextField(
-              'week_number_font_size',
-              this._getTranslation('week_number_font_size'),
+            ${(() => {
+              // Only show width and color fields if separator is enabled (width is not 0px)
+              const separatorEnabled =
+                this.getConfigValue('day_separator_width') !== '0px' &&
+                this.getConfigValue('day_separator_width') !== '0';
+
+              if (!separatorEnabled) {
+                return html``;
+              }
+
+              return html`
+                ${this.addTextField(
+                  'day_separator_width',
+                  this._getTranslation('day_separator_width'),
+                )}
+                ${this.addTextField(
+                  'day_separator_color',
+                  this._getTranslation('day_separator_color'),
+                )}
+              `;
+            })()}
+
+            <!-- Week Separator -->
+            <h5>${this._getTranslation('week_separator')}</h5>
+            ${this.addBooleanField(
+              'week_separator_toggle',
+              this._getTranslation('show_week_separator'),
+              this.getConfigValue('week_separator_width') !== '0px' &&
+                this.getConfigValue('week_separator_width') !== '0',
+              (e) => {
+                // Get the toggle state from the event
+                const checked = (e.target as any).checked;
+
+                // Set width based on toggle state
+                if (checked) {
+                  // If toggled ON, set default width
+                  this.setConfigValue('week_separator_width', '1px');
+                } else {
+                  // If toggled OFF, set to 0px to hide
+                  this.setConfigValue('week_separator_width', '0px');
+                }
+              },
             )}
-            ${this.addTextField('week_number_color', this._getTranslation('week_number_color'))}
-            ${this.addTextField(
-              'week_number_background_color',
-              this._getTranslation('week_number_background_color'),
+            ${(() => {
+              // Only show width and color fields if separator is enabled (width is not 0px)
+              const separatorEnabled =
+                this.getConfigValue('week_separator_width') !== '0px' &&
+                this.getConfigValue('week_separator_width') !== '0';
+
+              if (!separatorEnabled) {
+                return html``;
+              }
+
+              return html`
+                ${this.addTextField(
+                  'week_separator_width',
+                  this._getTranslation('week_separator_width'),
+                )}
+                ${this.addTextField(
+                  'week_separator_color',
+                  this._getTranslation('week_separator_color'),
+                )}
+              `;
+            })()}
+
+            <!-- Month Separator -->
+            <h5>${this._getTranslation('month_separator')}</h5>
+            ${this.addBooleanField(
+              'month_separator_toggle',
+              this._getTranslation('show_month_separator'),
+              this.getConfigValue('month_separator_width') !== '0px' &&
+                this.getConfigValue('month_separator_width') !== '0',
+              (e) => {
+                // Get the toggle state from the event
+                const checked = (e.target as any).checked;
+
+                // Set width based on toggle state
+                if (checked) {
+                  // If toggled ON, set default width
+                  this.setConfigValue('month_separator_width', '1px');
+                } else {
+                  // If toggled OFF, set to 0px to hide
+                  this.setConfigValue('month_separator_width', '0px');
+                }
+              },
             )}
-            ${this.addTextField('day_separator_width', this._getTranslation('day_separator_width'))}
-            ${this.addTextField('day_separator_color', this._getTranslation('day_separator_color'))}
-            ${this.addTextField(
-              'week_separator_width',
-              this._getTranslation('week_separator_width'),
-            )}
-            ${this.addTextField(
-              'week_separator_color',
-              this._getTranslation('week_separator_color'),
-            )}
-            ${this.addTextField(
-              'month_separator_width',
-              this._getTranslation('month_separator_width'),
-            )}
-            ${this.addTextField(
-              'month_separator_color',
-              this._getTranslation('month_separator_color'),
-            )}
+            ${(() => {
+              // Only show width and color fields if separator is enabled (width is not 0px)
+              const separatorEnabled =
+                this.getConfigValue('month_separator_width') !== '0px' &&
+                this.getConfigValue('month_separator_width') !== '0';
+
+              if (!separatorEnabled) {
+                return html``;
+              }
+
+              return html`
+                ${this.addTextField(
+                  'month_separator_width',
+                  this._getTranslation('month_separator_width'),
+                )}
+                ${this.addTextField(
+                  'month_separator_color',
+                  this._getTranslation('month_separator_color'),
+                )}
+              `;
+            })()}
           `,
         )}
 
@@ -590,41 +746,146 @@ export class CalendarCardProEditor extends LitElement {
           mdiCardText,
           html`
             <!-- Event Content -->
-            <h3>${this._getTranslation('event_content')}</h3>
+            <h3>${this._getTranslation('event_title')}</h3>
             ${this.addTextField('event_font_size', this._getTranslation('event_font_size'))}
             ${this.addTextField('event_color', this._getTranslation('event_color'))}
             ${this.addTextField('empty_day_color', this._getTranslation('empty_day_color'))}
 
             <!-- Time Display -->
-            <h3>${this._getTranslation('time_display')}</h3>
+            <h3>${this._getTranslation('time')}</h3>
             ${this.addBooleanField('show_time', this._getTranslation('show_time'))}
-            ${this.addBooleanField(
-              'show_single_allday_time',
-              this._getTranslation('show_single_allday_time'),
-            )}
-            ${this.addBooleanField('show_end_time', this._getTranslation('show_end_time'))}
-            ${this.addTextField('time_font_size', this._getTranslation('time_font_size'))}
-            ${this.addTextField('time_color', this._getTranslation('time_color'))}
-            ${this.addTextField('time_icon_size', this._getTranslation('time_icon_size'))}
+            ${(() => {
+              // Only show additional time fields if show_time is true
+              if (this.getConfigValue('show_time') !== true) {
+                return html``;
+              }
+
+              return html`
+                ${this.addBooleanField(
+                  'show_single_allday_time',
+                  this._getTranslation('show_single_allday_time'),
+                )}
+                ${this.addBooleanField('show_end_time', this._getTranslation('show_end_time'))}
+                ${this.addTextField('time_font_size', this._getTranslation('time_font_size'))}
+                ${this.addTextField('time_color', this._getTranslation('time_color'))}
+                ${this.addTextField('time_icon_size', this._getTranslation('time_icon_size'))}
+              `;
+            })()}
 
             <!-- Location Display -->
-            <h3>${this._getTranslation('location_display')}</h3>
+            <h3>${this._getTranslation('location')}</h3>
             ${this.addBooleanField('show_location', this._getTranslation('show_location'))}
-            ${this.addTextField(
-              'remove_location_country',
-              this._getTranslation('remove_location_country'),
-            )}
-            ${this.addTextField('location_font_size', this._getTranslation('location_font_size'))}
-            ${this.addTextField('location_color', this._getTranslation('location_color'))}
-            ${this.addTextField('location_icon_size', this._getTranslation('location_icon_size'))}
+            ${(() => {
+              // Only show additional location fields if show_location is true
+              if (this.getConfigValue('show_location') !== true) {
+                return html``;
+              }
+
+              return html`
+                ${this.addTextField(
+                  'location_font_size',
+                  this._getTranslation('location_font_size'),
+                )}
+                ${this.addTextField('location_color', this._getTranslation('location_color'))}
+                ${this.addTextField(
+                  'location_icon_size',
+                  this._getTranslation('location_icon_size'),
+                )}
+                ${this.addSelectField(
+                  'remove_location_country_selector',
+                  this._getTranslation('remove_location_country'),
+                  [
+                    { value: 'false', label: this._getTranslation('none') },
+                    { value: 'true', label: this._getTranslation('simple') },
+                    { value: 'custom', label: this._getTranslation('custom') },
+                  ],
+                  false,
+                  (() => {
+                    if (!this._config || !this._config.hasOwnProperty('remove_location_country'))
+                      return 'false';
+                    const value = this._config.remove_location_country;
+                    if (value === true || value === 'true') return 'true';
+                    if (value === false || value === 'false') return 'false';
+                    if (typeof value === 'string') return 'custom';
+                    return 'false';
+                  })(),
+                  (mode) => {
+                    // Handle mode selection
+                    if (mode === 'true') {
+                      this.setConfigValue('remove_location_country', true);
+                    } else if (mode === 'false') {
+                      this.setConfigValue('remove_location_country', false);
+                    } else if (mode === 'custom') {
+                      // Only set default if switching from non-custom to custom
+                      if (
+                        this._config &&
+                        this._config.remove_location_country !== 'custom' &&
+                        typeof this._config.remove_location_country !== 'string'
+                      ) {
+                        this.setConfigValue('remove_location_country', 'USA|United States|Canada');
+                      }
+                    }
+                  },
+                )}
+                ${(() => {
+                  // Only show custom pattern field when in custom mode
+                  if (
+                    !this._config ||
+                    !this._config.hasOwnProperty('remove_location_country') ||
+                    this._config.remove_location_country === true ||
+                    this._config.remove_location_country === false ||
+                    this._config.remove_location_country === 'true' ||
+                    this._config.remove_location_country === 'false'
+                  ) {
+                    return html``;
+                  }
+
+                  // Show custom pattern field if we have a string value that's not 'true'/'false'
+                  const value = this._config.remove_location_country;
+                  if (typeof value === 'string' && value !== 'true' && value !== 'false') {
+                    return html`
+                      <ha-textfield
+                        label="${this._getTranslation('custom_country_pattern')}"
+                        .value="${value}"
+                        @change="${(e) =>
+                          this.setConfigValue('remove_location_country', e.target.value)}"
+                      ></ha-textfield>
+                      <div class="helper-text">
+                        ${this._getTranslation('custom_country_pattern_note')}
+                      </div>
+                    `;
+                  }
+
+                  return html``;
+                })()}
+              `;
+            })()}
 
             <!-- Progress Indicators -->
             <h3>${this._getTranslation('progress_indicators')}</h3>
             ${this.addBooleanField('show_countdown', this._getTranslation('show_countdown'))}
             ${this.addBooleanField('show_progress_bar', this._getTranslation('show_progress_bar'))}
-            ${this.addTextField('progress_bar_color', this._getTranslation('progress_bar_color'))}
-            ${this.addTextField('progress_bar_height', this._getTranslation('progress_bar_height'))}
-            ${this.addTextField('progress_bar_width', this._getTranslation('progress_bar_width'))}
+            ${(() => {
+              // Only show additional progress bar fields if show_progress_bar is true
+              if (this.getConfigValue('show_progress_bar') !== true) {
+                return html``;
+              }
+
+              return html`
+                ${this.addTextField(
+                  'progress_bar_color',
+                  this._getTranslation('progress_bar_color'),
+                )}
+                ${this.addTextField(
+                  'progress_bar_height',
+                  this._getTranslation('progress_bar_height'),
+                )}
+                ${this.addTextField(
+                  'progress_bar_width',
+                  this._getTranslation('progress_bar_width'),
+                )}
+              `;
+            })()}
 
             <!-- Multi-day Event Handling -->
             <h3>${this._getTranslation('multiday_event_handling')}</h3>
@@ -645,67 +906,82 @@ export class CalendarCardProEditor extends LitElement {
             ${this.addEntityPickerField('weather.entity', this._getTranslation('weather_entity'), [
               'weather',
             ])}
-            ${this.addSelectField('weather.position', this._getTranslation('weather_position'), [
-              { value: 'none', label: this._getTranslation('none') },
-              { value: 'date', label: this._getTranslation('date') },
-              { value: 'event', label: this._getTranslation('event') },
-              { value: 'both', label: this._getTranslation('both') },
-            ])}
 
-            <!-- Conditionally render weather settings based on selected position -->
+            <!-- Only show the rest of the weather config when an entity is selected -->
             ${(() => {
-              const position = this.getConfigValue('weather.position', 'none');
+              const weatherEntity = this.getConfigValue('weather.entity');
+
+              // If no weather entity is selected, don't show any other config options
+              if (!weatherEntity) return html``;
+
               return html`
-                ${position === 'date' || position === 'both'
-                  ? html`
-                      <!-- Date Column Weather -->
-                      <h3>${this._getTranslation('date_column_weather')}</h3>
-                      ${this.addBooleanField(
-                        'weather.date.show_conditions',
-                        this._getTranslation('show_conditions'),
-                      )}
-                      ${this.addBooleanField(
-                        'weather.date.show_high_temp',
-                        this._getTranslation('show_high_temp'),
-                      )}
-                      ${this.addBooleanField(
-                        'weather.date.show_low_temp',
-                        this._getTranslation('show_low_temp'),
-                      )}
-                      ${this.addTextField(
-                        'weather.date.icon_size',
-                        this._getTranslation('icon_size'),
-                      )}
-                      ${this.addTextField(
-                        'weather.date.font_size',
-                        this._getTranslation('font_size'),
-                      )}
-                      ${this.addTextField('weather.date.color', this._getTranslation('color'))}
-                    `
-                  : html``}
-                ${position === 'event' || position === 'both'
-                  ? html`
-                      <!-- Event Row Weather -->
-                      <h3>${this._getTranslation('event_row_weather')}</h3>
-                      ${this.addBooleanField(
-                        'weather.event.show_conditions',
-                        this._getTranslation('show_conditions'),
-                      )}
-                      ${this.addBooleanField(
-                        'weather.event.show_temp',
-                        this._getTranslation('show_temp'),
-                      )}
-                      ${this.addTextField(
-                        'weather.event.icon_size',
-                        this._getTranslation('icon_size'),
-                      )}
-                      ${this.addTextField(
-                        'weather.event.font_size',
-                        this._getTranslation('font_size'),
-                      )}
-                      ${this.addTextField('weather.event.color', this._getTranslation('color'))}
-                    `
-                  : html``}
+                ${this.addSelectField(
+                  'weather.position',
+                  this._getTranslation('weather_position'),
+                  [
+                    { value: 'none', label: this._getTranslation('none') },
+                    { value: 'date', label: this._getTranslation('date') },
+                    { value: 'event', label: this._getTranslation('event') },
+                    { value: 'both', label: this._getTranslation('both') },
+                  ],
+                )}
+
+                <!-- Conditionally render weather settings based on selected position -->
+                ${(() => {
+                  const position = this.getConfigValue('weather.position', 'none');
+                  return html`
+                    ${position === 'date' || position === 'both'
+                      ? html`
+                          <!-- Date Column Weather -->
+                          <h3>${this._getTranslation('date_column_weather')}</h3>
+                          ${this.addBooleanField(
+                            'weather.date.show_conditions',
+                            this._getTranslation('show_conditions'),
+                          )}
+                          ${this.addBooleanField(
+                            'weather.date.show_high_temp',
+                            this._getTranslation('show_high_temp'),
+                          )}
+                          ${this.addBooleanField(
+                            'weather.date.show_low_temp',
+                            this._getTranslation('show_low_temp'),
+                          )}
+                          ${this.addTextField(
+                            'weather.date.icon_size',
+                            this._getTranslation('icon_size'),
+                          )}
+                          ${this.addTextField(
+                            'weather.date.font_size',
+                            this._getTranslation('font_size'),
+                          )}
+                          ${this.addTextField('weather.date.color', this._getTranslation('color'))}
+                        `
+                      : html``}
+                    ${position === 'event' || position === 'both'
+                      ? html`
+                          <!-- Event Row Weather -->
+                          <h3>${this._getTranslation('event_row_weather')}</h3>
+                          ${this.addBooleanField(
+                            'weather.event.show_conditions',
+                            this._getTranslation('show_conditions'),
+                          )}
+                          ${this.addBooleanField(
+                            'weather.event.show_temp',
+                            this._getTranslation('show_temp'),
+                          )}
+                          ${this.addTextField(
+                            'weather.event.icon_size',
+                            this._getTranslation('icon_size'),
+                          )}
+                          ${this.addTextField(
+                            'weather.event.font_size',
+                            this._getTranslation('font_size'),
+                          )}
+                          ${this.addTextField('weather.event.color', this._getTranslation('color'))}
+                        `
+                      : html``}
+                  `;
+                })()}
               `;
             })()}
           `,
@@ -788,13 +1064,21 @@ export class CalendarCardProEditor extends LitElement {
   /**
    * Add a boolean field with switch
    */
-  addBooleanField(name: string, label?: string, defaultValue?: boolean): TemplateResult {
+  addBooleanField(
+    name: string,
+    label?: string,
+    defaultValue?: boolean,
+    changeCallback?: (event: Event) => void,
+  ): TemplateResult {
     return html`
       <ha-formfield label="${label ?? this._getTranslation(name)}">
         <ha-switch
           name="${name}"
           .checked="${this.getConfigValue(name, defaultValue)}"
-          @change="${this._valueChanged}"
+          @change="${(event: Event) => {
+            this._valueChanged(event);
+            if (changeCallback) changeCallback(event);
+          }}"
         ></ha-switch>
       </ha-formfield>
     `;
@@ -809,6 +1093,7 @@ export class CalendarCardProEditor extends LitElement {
     options?: Array<{ value: string; label: string }>,
     clearable?: boolean,
     defaultValue?: string,
+    changeCallback?: (value: string) => void,
   ): TemplateResult {
     return html`
       <ha-select
@@ -816,7 +1101,13 @@ export class CalendarCardProEditor extends LitElement {
         label="${label ?? this._getTranslation(name)}"
         .value="${this.getConfigValue(name, defaultValue)}"
         .clearable="${clearable ?? false}"
-        @change="${this._valueChanged}"
+        @change="${(event: Event) => {
+          this._valueChanged(event);
+          if (changeCallback && event.target) {
+            const value = (event.target as HTMLSelectElement).value;
+            changeCallback(value);
+          }
+        }}"
         @closed="${(event: Event) => event.stopPropagation()}"
       >
         ${options?.map(
