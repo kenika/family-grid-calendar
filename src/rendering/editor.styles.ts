@@ -1,8 +1,10 @@
-import { css } from 'lit';
-
+/* eslint-disable import/order */
 /**
  * Styling for the Calendar Card Pro editor
  */
+
+import { css } from 'lit';
+
 export default css`
   ha-textfield,
   ha-select,

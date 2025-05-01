@@ -94,9 +94,6 @@ class CalendarCardPro extends LitElement {
     return document.createElement('calendar-card-pro-dev-editor');
   }
 
-  /**
-   * Return default stub config for the card
-   */
   static getStubConfig = Config.getStubConfig;
 
   // Private, non-reactive properties
@@ -604,18 +601,12 @@ customElements.define('calendar-card-pro-dev-editor', Editor.CalendarCardProEdit
 // Create interface extending CustomElementConstructor to allow getStubConfig property
 interface CalendarCardConstructor extends CustomElementConstructor {
   getStubConfig?: typeof Config.getStubConfig;
-  getConfigElement?: () => HTMLElement;
 }
 
 // Expose getStubConfig for Home Assistant card picker preview
 const element = customElements.get('calendar-card-pro-dev');
 if (element) {
   (element as CalendarCardConstructor).getStubConfig = Config.getStubConfig;
-
-  // Add getConfigElement method to expose the editor component
-  (element as CalendarCardConstructor).getConfigElement = function () {
-    return document.createElement('calendar-card-pro-dev-editor');
-  };
 }
 
 // Register with HACS

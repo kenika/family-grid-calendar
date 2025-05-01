@@ -5,8 +5,8 @@
  * This provides a visual interface for configuring the calendar card.
  */
 
-import { html, LitElement, TemplateResult } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { LitElement, TemplateResult, html } from 'lit';
+import { property } from 'lit/decorators.js';
 import styles from './editor.styles';
 import * as Types from '../config/types';
 import * as Config from '../config/config';
@@ -14,14 +14,14 @@ import * as Localize from '../translations/localize';
 
 // Import Material Design icons
 import {
-  mdiCalendarMultiple, // For Calendar Entities main panel
   mdiCalendar, // For individual calendar entities
   mdiCalendarMonth, // For Core Settings
-  mdiPalette, // For Appearance & Layout
+  mdiCalendarMultiple, // For Calendar Entities main panel
   mdiCalendarToday, // For Date Display
   mdiCardText, // For Event Display
-  mdiWeatherPartlyCloudy, // For Weather Integration
   mdiGestureTapHold, // For Interactions
+  mdiPalette, // For Appearance & Layout
+  mdiWeatherPartlyCloudy, // For Weather Integration
 } from '@mdi/js';
 
 /**
@@ -29,7 +29,6 @@ import {
  *
  * This component handles the visual configuration of the card.
  */
-@customElement('calendar-card-pro-dev-editor')
 export class CalendarCardProEditor extends LitElement {
   static get styles() {
     return styles;
@@ -47,8 +46,14 @@ export class CalendarCardProEditor extends LitElement {
     if (!customElements.get('ha-entity-picker')) {
       try {
         const huiElement = customElements.get('hui-entities-card');
-        if (huiElement && typeof (huiElement as any).getConfigElement === 'function') {
-          await (huiElement as any).getConfigElement();
+        if (
+          huiElement &&
+          typeof (huiElement as unknown as { getConfigElement?: () => Promise<unknown> })
+            .getConfigElement === 'function'
+        ) {
+          await (
+            huiElement as unknown as { getConfigElement: () => Promise<unknown> }
+          ).getConfigElement();
         } else {
           // Fallback if method doesn't exist
           console.warn('Could not load ha-entity-picker: getConfigElement not available');
@@ -80,14 +85,14 @@ export class CalendarCardProEditor extends LitElement {
       isEditorTranslation && !Localize.hasEditorTranslations(requestedLang) ? 'en' : requestedLang;
 
     // Get translation using appropriate language
-    return Localize.translate(langToUse, translationKey as any, key) as string;
+    return Localize.translate(langToUse, translationKey as string, key) as string;
   }
 
   /**
    * Get configuration value from config object using dot notation
    * Handles special cases for certain configuration properties
    */
-  getConfigValue(path: string, defaultValue?: any): any {
+  getConfigValue(path: string, defaultValue?: unknown): unknown {
     if (!this._config) {
       return defaultValue;
     }
@@ -109,7 +114,7 @@ export class CalendarCardProEditor extends LitElement {
 
     // Handle nested properties with dot notation
     const pathParts = path.split('.');
-    let current: any = this._config;
+    let current: unknown = this._config;
 
     for (const part of pathParts) {
       if (current === undefined || current === null) {
@@ -127,8 +132,12 @@ export class CalendarCardProEditor extends LitElement {
       }
 
       // Handle object properties
-      if (typeof current === 'object' && part in current) {
-        current = current[part];
+      if (
+        typeof current === 'object' &&
+        current !== null &&
+        part in (current as Record<string, unknown>)
+      ) {
+        current = (current as Record<string, unknown>)[part];
       } else {
         return defaultValue;
       }
@@ -141,7 +150,7 @@ export class CalendarCardProEditor extends LitElement {
    * Set configuration value using dot notation
    * Handles special cases for certain configuration properties
    */
-  setConfigValue(path: string, value: any): void {
+  setConfigValue(path: string, value: unknown): void {
     if (!this._config) {
       return;
     }
@@ -157,7 +166,7 @@ export class CalendarCardProEditor extends LitElement {
     }
 
     // Create a deep copy of the config
-    const config = JSON.parse(JSON.stringify(this._config));
+    const config = JSON.parse(JSON.stringify(this._config)) as Record<string, unknown>;
 
     // Handle simple top-level properties
     if (!path.includes('.')) {
@@ -168,49 +177,52 @@ export class CalendarCardProEditor extends LitElement {
         // Store all other values, including empty strings
         config[path] = value;
       }
-      this._fireConfigChanged(config);
+      this._fireConfigChanged(config as unknown as Types.Config);
       return;
     }
 
     // Handle nested properties with dot notation
     const pathParts = path.split('.');
     const lastPart = pathParts.pop()!;
-    let current = config;
+    let current: Record<string, unknown> | unknown[] = config;
 
     for (const part of pathParts) {
       // Handle array indices
       if (/^\d+$/.test(part)) {
         const index = parseInt(part, 10);
         if (!Array.isArray(current)) {
-          current = [];
+          current = [] as unknown[];
         }
-        while (current.length <= index) {
-          current.push({});
+        while ((current as unknown[]).length <= index) {
+          (current as unknown[]).push({});
         }
-        if (!current[index] || typeof current[index] !== 'object') {
-          current[index] = {};
+        if (!(current as unknown[])[index] || typeof (current as unknown[])[index] !== 'object') {
+          (current as unknown[])[index] = {};
         }
-        current = current[index];
+        current = (current as unknown[])[index] as Record<string, unknown>;
         continue;
       }
 
       // Handle object properties
-      if (!current[part] || typeof current[part] !== 'object') {
-        current[part] = {};
+      if (
+        !Object.prototype.hasOwnProperty.call(current, part) ||
+        typeof (current as Record<string, unknown>)[part] !== 'object'
+      ) {
+        (current as Record<string, unknown>)[part] = {};
       }
-      current = current[part];
+      current = (current as Record<string, unknown>)[part] as Record<string, unknown>;
     }
 
     // Set or delete the final value
     if (value === undefined) {
       // Only delete if undefined, preserve empty strings
-      delete current[lastPart];
+      delete (current as Record<string, unknown>)[lastPart];
     } else {
       // Store all other values, including empty strings
-      current[lastPart] = value;
+      (current as Record<string, unknown>)[lastPart] = value;
     }
 
-    this._fireConfigChanged(config);
+    this._fireConfigChanged(config as unknown as Types.Config);
   }
 
   /**
@@ -279,7 +291,7 @@ export class CalendarCardProEditor extends LitElement {
 
     // Handle switch/checkbox values
     if (target.tagName === 'HA-SWITCH') {
-      value = (target as any).checked;
+      value = (target as HTMLInputElement).checked;
     }
 
     // Handle numeric inputs
@@ -307,7 +319,7 @@ export class CalendarCardProEditor extends LitElement {
       // Parse JSON and store as object
       value = value ? JSON.parse(value) : {};
       this.setConfigValue(name, value);
-    } catch (e) {
+    } catch {
       // Invalid JSON - don't update
     }
   }
@@ -618,7 +630,7 @@ export class CalendarCardProEditor extends LitElement {
                 this.getConfigValue('day_separator_width') !== '0',
               (e) => {
                 // Get the toggle state from the event
-                const checked = (e.target as any).checked;
+                const checked = (e.target as HTMLInputElement).checked;
 
                 // Set width based on toggle state
                 if (checked) {
@@ -661,7 +673,7 @@ export class CalendarCardProEditor extends LitElement {
                 this.getConfigValue('week_separator_width') !== '0',
               (e) => {
                 // Get the toggle state from the event
-                const checked = (e.target as any).checked;
+                const checked = (e.target as HTMLInputElement).checked;
 
                 // Set width based on toggle state
                 if (checked) {
@@ -704,7 +716,7 @@ export class CalendarCardProEditor extends LitElement {
                 this.getConfigValue('month_separator_width') !== '0',
               (e) => {
                 // Get the toggle state from the event
-                const checked = (e.target as any).checked;
+                const checked = (e.target as HTMLInputElement).checked;
 
                 // Set width based on toggle state
                 if (checked) {
@@ -1158,7 +1170,7 @@ export class CalendarCardProEditor extends LitElement {
         name="${name}"
         label="${label ?? this._getTranslation(name)}"
         .value="${this.getConfigValue(name)}"
-        @value-changed="${(event: CustomEvent) => {
+        @value-changed="${(event: CustomEvent<{ value: string }>) => {
           this.setConfigValue(name, event.detail.value);
         }}"
       ></ha-icon-picker>
@@ -1194,7 +1206,6 @@ export class CalendarCardProEditor extends LitElement {
   _renderCalendarEntity(entity: string | Types.EntityConfig, index: number): TemplateResult {
     const isStringEntity = typeof entity === 'string';
     const entityValue = isStringEntity ? entity : entity.entity;
-    const entityLabel = isStringEntity ? entityValue : entity.label || entityValue;
 
     // Create a panel header that shows both label (if set) and entity ID
     const panelHeader =
@@ -1386,8 +1397,11 @@ export class CalendarCardProEditor extends LitElement {
    * Render action configuration UI
    */
   _renderActionConfig(configKey: string): TemplateResult {
-    const actionConfig = this.getConfigValue(configKey, { action: 'none' });
-    const action = actionConfig.action || 'none';
+    const actionConfig = this.getConfigValue(configKey, { action: 'none' }) as Record<
+      string,
+      unknown
+    >;
+    const action = (actionConfig.action as string) || 'none';
 
     return html`
       <div class="action-config">
@@ -1456,7 +1470,7 @@ export class CalendarCardProEditor extends LitElement {
    * @param context 'indicator' or 'label' to provide context-specific classification
    * @returns Type classification based on the value and context
    */
-  getValueType(value: any, context: 'indicator' | 'label' = 'label'): string {
+  getValueType(value: unknown, context: 'indicator' | 'label' = 'label'): string {
     // Shared detection for both contexts
     if (!value || value === false) return 'none';
 
@@ -1495,7 +1509,7 @@ export class CalendarCardProEditor extends LitElement {
   _handleValueTypeChange(
     event: Event,
     path: string,
-    currentValue: any,
+    currentValue: unknown,
     context: 'indicator' | 'label' = 'label',
   ): void {
     // Stop event propagation
@@ -1569,9 +1583,6 @@ export class CalendarCardProEditor extends LitElement {
     const value = this.getConfigValue(path);
     const valueType = this.getValueType(value, context);
 
-    // Get a clean icon value if this is an icon type
-    const iconName = typeof value === 'string' && value.startsWith('mdi:') ? value : '';
-
     return html`
       <div class="type-selector-field">
         <ha-select
@@ -1597,7 +1608,7 @@ export class CalendarCardProEditor extends LitElement {
   _renderTypeField(
     valueType: string,
     path: string,
-    value: any,
+    value: unknown,
     context: 'indicator' | 'label',
   ): TemplateResult {
     if (valueType === 'icon') {
@@ -1605,8 +1616,8 @@ export class CalendarCardProEditor extends LitElement {
         <div class="icon-picker-wrapper">
           <ha-icon-picker
             .hass="${this.hass}"
-            .value="${value}"
-            @value-changed="${(event: CustomEvent) => {
+            .value="${value as string}"
+            @value-changed="${(event: CustomEvent<{ value: string }>) => {
               // When an icon is selected, add 'mdi:' prefix if needed
               const selectedIcon = event.detail.value;
               if (selectedIcon) {
@@ -1637,7 +1648,7 @@ export class CalendarCardProEditor extends LitElement {
         <ha-textfield
           name="${path}"
           label="${fieldLabel}"
-          .value="${value}"
+          .value="${value as string}"
           @change="${this._valueChanged}"
         ></ha-textfield>
         <div class="helper-text">${helperText}</div>
@@ -1647,7 +1658,7 @@ export class CalendarCardProEditor extends LitElement {
         <ha-textfield
           name="${path}"
           label="${this._getTranslation('image_path')}"
-          .value="${value}"
+          .value="${value as string}"
           @change="${this._valueChanged}"
         ></ha-textfield>
         <div class="helper-text">${this._getTranslation('image_indicator_note')}</div>
