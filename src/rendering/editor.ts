@@ -1,9 +1,14 @@
 /* eslint-disable import/order */
 /**
- * Editor component for Calendar Card Pro
- *
- * This provides a visual interface for configuring the calendar card.
+ * Editor module for Calendar Card Pro
+ * ------------------------
+ * Provides the visual configuration editor for Calendar Card Pro.
+ * Handles config validation, upgrade, and dynamic UI rendering using native Home Assistant elements.
  */
+
+//-----------------------------------------------------------------------------
+// IMPORTS & CONSTANTS
+//-----------------------------------------------------------------------------
 
 import { LitElement, TemplateResult, html } from 'lit';
 import { property } from 'lit/decorators.js';
@@ -24,6 +29,21 @@ import {
   mdiWeatherPartlyCloudy, // For Weather Integration
 } from '@mdi/js';
 
+// Deprecated parameter mappings for config upgrade
+const DEPRECATED_CONFIG_MAP: Record<string, string> = {
+  max_events_to_show: 'compact_events_to_show',
+  vertical_line_color: 'accent_color',
+  horizontal_line_width: 'day_separator_width',
+  horizontal_line_color: 'day_separator_color',
+};
+const DEPRECATED_ENTITY_CONFIG_MAP: Record<string, string> = {
+  max_events_to_show: 'compact_events_to_show',
+};
+
+//-----------------------------------------------------------------------------
+// COMPONENT DEFINITION & PROPERTIES
+//-----------------------------------------------------------------------------
+
 /**
  * Calendar Card Pro Editor component
  *
@@ -37,12 +57,22 @@ export class CalendarCardProEditor extends LitElement {
   @property({ attribute: false }) hass?: Types.Hass;
   @property({ attribute: false }) _config?: Types.Config;
 
+  //-----------------------------------------------------------------------------
+  // LIFECYCLE METHODS
+  //-----------------------------------------------------------------------------
+
+  /**
+   * Called when the editor is attached to the DOM.
+   */
   connectedCallback(): void {
     super.connectedCallback();
-    this.loadCustomElements();
+    this._loadCustomElements();
   }
 
-  async loadCustomElements(): Promise<void> {
+  /**
+   * Loads custom Home Assistant elements required by the editor.
+   */
+  private async _loadCustomElements(): Promise<void> {
     if (!customElements.get('ha-entity-picker')) {
       try {
         const huiElement = customElements.get('hui-entities-card');
@@ -64,33 +94,23 @@ export class CalendarCardProEditor extends LitElement {
     }
   }
 
+  //-----------------------------------------------------------------------------
+  // CONFIG MANAGEMENT & UPGRADE HELPERS
+  //-----------------------------------------------------------------------------
+
+  /**
+   * Sets the configuration for the editor.
+   * @param config Partial configuration object
+   */
   setConfig(config: Partial<Types.Config>): void {
     this._config = { ...Config.DEFAULT_CONFIG, ...config };
   }
 
   /**
-   * Translation helper with smart fallback for editor translations
-   */
-  private _getTranslation(key: string): string {
-    // Get requested language
-    const requestedLang = this._config?.language || this.hass?.locale?.language || 'en';
-
-    // Properly prefix editor keys unless they already have the prefix
-    const translationKey = key.includes('.') ? key : `editor.${key}`;
-    const isEditorTranslation = translationKey.startsWith('editor.');
-
-    // If this is an editor translation, check if translations exist in the requested language
-    // If not, fall back to English only for editor translations
-    const langToUse =
-      isEditorTranslation && !Localize.hasEditorTranslations(requestedLang) ? 'en' : requestedLang;
-
-    // Get translation using appropriate language
-    return Localize.translate(langToUse, translationKey as string, key) as string;
-  }
-
-  /**
-   * Get configuration value from config object using dot notation
-   * Handles special cases for certain configuration properties
+   * Gets a configuration value using dot notation.
+   * @param path Dot notation path
+   * @param defaultValue Default value if not found
+   * @returns The config value or default
    */
   getConfigValue(path: string, defaultValue?: unknown): unknown {
     if (!this._config) {
@@ -147,8 +167,9 @@ export class CalendarCardProEditor extends LitElement {
   }
 
   /**
-   * Set configuration value using dot notation
-   * Handles special cases for certain configuration properties
+   * Sets a configuration value using dot notation.
+   * @param path Dot notation path
+   * @param value Value to set
    */
   setConfigValue(path: string, value: unknown): void {
     if (!this._config) {
@@ -226,7 +247,8 @@ export class CalendarCardProEditor extends LitElement {
   }
 
   /**
-   * Fire config changed event to update card configuration
+   * Fires the config-changed event to notify Home Assistant of config updates.
+   * @param config The updated config
    */
   private _fireConfigChanged(config: Types.Config): void {
     this._config = config;
@@ -234,7 +256,105 @@ export class CalendarCardProEditor extends LitElement {
   }
 
   /**
-   * Handle value changes from inputs
+   * Finds deprecated parameters at the root config level.
+   * @param config The config object
+   * @returns Array of deprecated parameter keys
+   */
+  private _findDeprecatedParams(config: Record<string, unknown>): string[] {
+    return Object.keys(DEPRECATED_CONFIG_MAP).filter((deprecated) => deprecated in config);
+  }
+
+  /**
+   * Finds deprecated parameters in entity configs.
+   * @param entities The entities array
+   * @returns Array of objects with index and param
+   */
+  private _findDeprecatedEntityParams(entities: unknown[]): { index: number; param: string }[] {
+    const found: { index: number; param: string }[] = [];
+    entities.forEach((entity, idx) => {
+      if (typeof entity === 'object' && entity !== null) {
+        Object.keys(DEPRECATED_ENTITY_CONFIG_MAP).forEach((deprecated) => {
+          if (deprecated in entity) {
+            found.push({ index: idx, param: deprecated });
+          }
+        });
+      }
+    });
+    return found;
+  }
+
+  /**
+   * Upgrades the config by replacing deprecated parameters with their replacements.
+   */
+  private _upgradeConfig(): void {
+    const config = { ...this._config } as Record<string, unknown>;
+    let changed = false;
+
+    // Root-level deprecated params
+    for (const [oldKey, newKey] of Object.entries(DEPRECATED_CONFIG_MAP)) {
+      if (oldKey in config) {
+        config[newKey] = config[oldKey];
+        delete config[oldKey];
+        changed = true;
+      }
+    }
+
+    // Entity-level deprecated params
+    if (Array.isArray(config.entities)) {
+      config.entities = config.entities.map((entity) => {
+        if (typeof entity === 'object' && entity !== null) {
+          const newEntity = { ...entity };
+          for (const [oldKey, newKey] of Object.entries(DEPRECATED_ENTITY_CONFIG_MAP)) {
+            if (oldKey in newEntity) {
+              newEntity[newKey] = newEntity[oldKey];
+              delete newEntity[oldKey];
+              changed = true;
+            }
+          }
+          return newEntity;
+        }
+        return entity;
+      });
+    }
+
+    if (changed) {
+      this._fireConfigChanged(config as unknown as Types.Config);
+    }
+  }
+
+  //-----------------------------------------------------------------------------
+  // TRANSLATION & LOCALIZATION HELPERS
+  //-----------------------------------------------------------------------------
+
+  /**
+   * Helper to get a translated string for the editor UI.
+   * @param key Translation key
+   * @returns Translated string
+   */
+  private _getTranslation(key: string): string {
+    // Get requested language
+    const requestedLang = this._config?.language || this.hass?.locale?.language || 'en';
+
+    // Properly prefix editor keys unless they already have the prefix
+    const translationKey = key.includes('.') ? key : `editor.${key}`;
+    const isEditorTranslation = translationKey.startsWith('editor.');
+
+    // If this is an editor translation, check if translations exist in the requested language
+    // If not, fall back to English only for editor translations
+    const langToUse =
+      isEditorTranslation && !Localize.hasEditorTranslations(requestedLang) ? 'en' : requestedLang;
+
+    // Get translation using appropriate language
+    return Localize.translate(langToUse, translationKey as string, key) as string;
+  }
+
+  //-----------------------------------------------------------------------------
+  // INPUT/EVENT HANDLERS
+  //-----------------------------------------------------------------------------
+
+  /**
+   * Handles value changes from input elements.
+   * @param event Input event
    */
   _valueChanged(event: Event): void {
     if (!event.target) return;
@@ -303,7 +423,8 @@ export class CalendarCardProEditor extends LitElement {
   }
 
   /**
-   * Handle service data changes (JSON inputs)
+   * Handles changes to service data fields (JSON inputs).
+   * @param event Input event
    */
   _serviceDataChanged(event: Event): void {
     if (!event.target) return;
@@ -324,12 +445,50 @@ export class CalendarCardProEditor extends LitElement {
     }
   }
 
+  //-----------------------------------------------------------------------------
+  // MAIN RENDER METHOD
+  //-----------------------------------------------------------------------------
+
+  /**
+   * Renders the editor UI.
+   * @returns Lit template for the editor
+   */
   render() {
     if (!this.hass || !this._config) {
       return html``;
     }
 
+    // Config upgrade notice
+    const deprecatedParams = this._findDeprecatedParams(
+      this._config as unknown as Record<string, unknown>,
+    );
+    const deprecatedEntityParams = this._findDeprecatedEntityParams(
+      (this._config?.entities ?? []) as unknown[],
+    );
+    const hasDeprecated = deprecatedParams.length > 0 || deprecatedEntityParams.length > 0;
+    const upgradeNotice = hasDeprecated
+      ? html`
+          <div style="border-radius: 8px; overflow: hidden;">
+            <ha-alert alert-type="warning">
+              <div style="height: 6px"></div>
+              <b>${this._getTranslation('editor.deprecated_config_detected')}</b><br />
+              ${this._getTranslation('editor.deprecated_config_explanation')}<br />
+              <span style="color: var(--warning-color); font-size: 0.95em;">
+                ${this._getTranslation('editor.deprecated_config_update_hint')}
+              </span>
+              <div style="text-align:center;">
+                <ha-button @click="${() => this._upgradeConfig()}">
+                  <ha-icon icon="mdi:autorenew"></ha-icon>
+                  ${this._getTranslation('editor.update_config')}
+                </ha-button>
+              </div>
+            </ha-alert>
+          </div>
+        `
+      : null;
+
     return html`
+      ${upgradeNotice}
       <div class="card-config">
         <!-- CALENDAR ENTITIES -->
         ${this.addExpansionPanel(
@@ -1029,8 +1188,17 @@ export class CalendarCardProEditor extends LitElement {
     `;
   }
 
+  //-----------------------------------------------------------------------------
+  // RENDERING HELPERS (UI FIELD GENERATORS)
+  //-----------------------------------------------------------------------------
+
   /**
-   * Add a text field input
+   * Adds a text field input to the editor.
+   * @param name Config key
+   * @param label Field label
+   * @param type Input type
+   * @param defaultValue Default value
+   * @returns Lit template for the text field
    */
   addTextField(name: string, label?: string, type?: string, defaultValue?: string): TemplateResult {
     let value = this.getConfigValue(name, defaultValue);
@@ -1053,7 +1221,12 @@ export class CalendarCardProEditor extends LitElement {
   }
 
   /**
-   * Add an entity picker field
+   * Adds an entity picker field to the editor.
+   * @param name Config key
+   * @param label Field label
+   * @param includeDomains Domains to include
+   * @param defaultValue Default value
+   * @returns Lit template for the entity picker
    */
   addEntityPickerField(
     name: string,
@@ -1074,7 +1247,12 @@ export class CalendarCardProEditor extends LitElement {
   }
 
   /**
-   * Add a boolean field with switch
+   * Adds a boolean field (switch) to the editor.
+   * @param name Config key
+   * @param label Field label
+   * @param defaultValue Default value
+   * @param changeCallback Optional callback for change events
+   * @returns Lit template for the boolean field
    */
   addBooleanField(
     name: string,
@@ -1097,7 +1275,14 @@ export class CalendarCardProEditor extends LitElement {
   }
 
   /**
-   * Add a select dropdown field
+   * Adds a select dropdown field to the editor.
+   * @param name Config key
+   * @param label Field label
+   * @param options Dropdown options
+   * @param clearable Whether the field is clearable
+   * @param defaultValue Default value
+   * @param changeCallback Optional callback for change events
+   * @returns Lit template for the select field
    */
   addSelectField(
     name: string,
@@ -1132,7 +1317,12 @@ export class CalendarCardProEditor extends LitElement {
   }
 
   /**
-   * Add an expansion panel
+   * Adds an expansion panel to the editor.
+   * @param header Panel header
+   * @param icon Panel icon
+   * @param content Panel content
+   * @param expanded Whether the panel is expanded by default
+   * @returns Lit template for the expansion panel
    */
   addExpansionPanel(
     header: string,
@@ -1149,7 +1339,11 @@ export class CalendarCardProEditor extends LitElement {
   }
 
   /**
-   * Add a button
+   * Adds a button to the editor.
+   * @param text Button text
+   * @param icon Button icon
+   * @param clickFunction Click handler
+   * @returns Lit template for the button
    */
   addButton(text: string, icon: string, clickFunction: () => void): TemplateResult {
     return html`
@@ -1161,7 +1355,10 @@ export class CalendarCardProEditor extends LitElement {
   }
 
   /**
-   * Add an icon picker field
+   * Adds an icon picker field to the editor.
+   * @param name Config key
+   * @param label Field label
+   * @returns Lit template for the icon picker
    */
   addIconPickerField(name: string, label?: string): TemplateResult {
     return html`
@@ -1178,7 +1375,10 @@ export class CalendarCardProEditor extends LitElement {
   }
 
   /**
-   * Add a Today Indicator field with specialized UI
+   * Adds a Today Indicator field with specialized UI.
+   * @param name Config key
+   * @param label Field label
+   * @returns Lit template for the today indicator field
    */
   addTodayIndicatorField(name: string, label?: string): TemplateResult {
     // Define options for today indicator
@@ -1200,8 +1400,15 @@ export class CalendarCardProEditor extends LitElement {
     );
   }
 
+  //-----------------------------------------------------------------------------
+  // CALENDAR ENTITY RENDERING & MANAGEMENT
+  //-----------------------------------------------------------------------------
+
   /**
-   * Render a calendar entity configuration
+   * Renders a calendar entity configuration panel.
+   * @param entity The entity config or string
+   * @param index Index in the entities array
+   * @returns Lit template for the entity panel
    */
   _renderCalendarEntity(entity: string | Types.EntityConfig, index: number): TemplateResult {
     const isStringEntity = typeof entity === 'string';
@@ -1272,9 +1479,6 @@ export class CalendarCardProEditor extends LitElement {
                 <!-- Event Filtering Section -->
                 <div class="editor-section">
                   <h4>${this._getTranslation('event_filtering')}</h4>
-                  <div class="helper-text section-note">
-                    ${this._getTranslation('event_filtering_note')}
-                  </div>
 
                   ${this.addTextField(
                     `entities.${index}.blocklist`,
@@ -1351,7 +1555,8 @@ export class CalendarCardProEditor extends LitElement {
   }
 
   /**
-   * Render all calendar entities
+   * Renders all calendar entities.
+   * @returns Lit template for all entity panels
    */
   _renderCalendarEntities(): TemplateResult {
     const entities = this._config?.entities || [];
@@ -1365,7 +1570,7 @@ export class CalendarCardProEditor extends LitElement {
   }
 
   /**
-   * Add a new calendar entity
+   * Adds a new calendar entity to the config.
    */
   _addCalendarEntity(): void {
     const entities = [...(this._config?.entities || [])];
@@ -1375,7 +1580,8 @@ export class CalendarCardProEditor extends LitElement {
   }
 
   /**
-   * Remove a calendar entity
+   * Removes a calendar entity from the config.
+   * @param index Index to remove
    */
   _removeCalendarEntity(index: number): void {
     const entities = [...(this._config?.entities || [])];
@@ -1384,7 +1590,8 @@ export class CalendarCardProEditor extends LitElement {
   }
 
   /**
-   * Convert a string entity to an object entity
+   * Converts a string entity to an object entity in the config.
+   * @param index Index to convert
    */
   _convertEntityToObject(index: number): void {
     const entities = [...(this._config?.entities || [])];
@@ -1393,8 +1600,14 @@ export class CalendarCardProEditor extends LitElement {
     this.setConfigValue('entities', entities);
   }
 
+  //-----------------------------------------------------------------------------
+  // ACTION CONFIG RENDERING
+  //-----------------------------------------------------------------------------
+
   /**
-   * Render action configuration UI
+   * Renders the action configuration UI for a given action.
+   * @param configKey Config key for the action
+   * @returns Lit template for the action config
    */
   _renderActionConfig(configKey: string): TemplateResult {
     const actionConfig = this.getConfigValue(configKey, { action: 'none' }) as Record<
@@ -1463,12 +1676,15 @@ export class CalendarCardProEditor extends LitElement {
     `;
   }
 
+  //-----------------------------------------------------------------------------
+  // TYPE SELECTOR & VALUE HELPERS
+  //-----------------------------------------------------------------------------
+
   /**
-   * Determine indicator or label type from a value
-   *
+   * Determines the type of value for indicator or label fields.
    * @param value The value to analyze
-   * @param context 'indicator' or 'label' to provide context-specific classification
-   * @returns Type classification based on the value and context
+   * @param context 'indicator' or 'label'
+   * @returns The value type as a string
    */
   getValueType(value: unknown, context: 'indicator' | 'label' = 'label'): string {
     // Shared detection for both contexts
@@ -1504,7 +1720,11 @@ export class CalendarCardProEditor extends LitElement {
   }
 
   /**
-   * Handle value type changes for both indicators and labels
+   * Handles changes to value type selectors for indicators and labels.
+   * @param event Change event
+   * @param path Config path
+   * @param currentValue Current value
+   * @param context 'indicator' or 'label'
    */
   _handleValueTypeChange(
     event: Event,
@@ -1572,7 +1792,12 @@ export class CalendarCardProEditor extends LitElement {
   }
 
   /**
-   * Render a dropdown selector with conditional fields based on selected type
+   * Renders a dropdown selector for indicator or label type.
+   * @param path Config path
+   * @param label Field label
+   * @param options Selector options
+   * @param context 'indicator' or 'label'
+   * @returns Lit template for the selector
    */
   _renderTypeSelector(
     path: string,
@@ -1603,7 +1828,12 @@ export class CalendarCardProEditor extends LitElement {
   }
 
   /**
-   * Render the appropriate field based on selected value type
+   * Renders the appropriate field for the selected value type.
+   * @param valueType The value type
+   * @param path Config path
+   * @param value Current value
+   * @param context 'indicator' or 'label'
+   * @returns Lit template for the field
    */
   _renderTypeField(
     valueType: string,

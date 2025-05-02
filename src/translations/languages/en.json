@@ -28,7 +28,6 @@
     "entity_identification": "Entity Identification",
     "display_settings": "Display Settings",
     "event_filtering": "Event Filtering",
-    "event_filtering_note": "Configure which events to show or hide from this calendar.",
     "entity_overrides": "Entity Overrides",
     "entity_overrides_note": "These settings will override the global core settings for this specific calendar.",
     "entity_show_time_note": "Show or hide event times for this calendar only.",
@@ -241,6 +240,11 @@
     "emoji_value": "Emoji",
     "emoji_indicator_note": "Enter a single emoji character like 🗓️",
     "image_path": "Image path",
-    "image_indicator_note": "Path to image like /local/image.jpg"
+    "image_indicator_note": "Path to image like /local/image.jpg",
+
+    "deprecated_config_detected": "Deprecated config options detected.",
+    "deprecated_config_explanation": "Some options in your configuration are no longer supported.",
+    "deprecated_config_update_hint": "Please update to ensure compatibility.",
+    "update_config": "Update config…"
   }
 }
