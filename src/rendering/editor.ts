@@ -1786,7 +1786,7 @@ export class CalendarCardProEditor extends LitElement {
         ) {
           newValue = currentValue;
         } else {
-          newValue = '📅 '; // Default text/emoji for labels
+          newValue = '📅'; // Default text/emoji for labels
         }
       }
     }
