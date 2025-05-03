@@ -229,9 +229,11 @@ export function groupEventsByDay(
       eventsByDay[eventDateKey].events.push({
         summary: event.summary || '',
         time: FormatUtils.formatEventTime(event, config, language),
-        location: config.show_location
-          ? FormatUtils.formatLocation(event.location || '', config.remove_location_country)
-          : '',
+        location:
+          (getEntitySetting(event._entityId, 'show_location', config, event) ??
+          config.show_location)
+            ? FormatUtils.formatLocation(event.location || '', config.remove_location_country)
+            : '',
         start: event.start,
         end: event.end,
         _entityId: event._entityId,
