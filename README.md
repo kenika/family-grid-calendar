@@ -43,11 +43,12 @@ Built with **performance in mind**, the card leverages **intelligent refresh mec
 - 🎨 **Sleek & Minimalist Design** – Clean, modern, and visually appealing layout.
 - ✅ **Multi-Calendar Support** – Display multiple calendars with unique styling.
 - 📅 **Compact & Expandable Views** – Adaptive views to suit different dashboard needs.
+- ⚙️ **Visual Configuration Editor** – Intuitive interface for effortless card setup.
 - 🔧 **Highly Customizable** – Fine-tune layout, colors, event details, and behavior.
+- 🌦️ **Weather Integration** – Display weather forecasts alongside your calendar events.
 - ⚡ **Optimized Performance** – Smart caching, progressive rendering, and minimal API calls.
 - 💡 **Deep Home Assistant Integration** – Theme-aware with native ripple effects.
 - 🌍 **Multi-Language Support** – [Available in 28 languages](#-adding-translations), community contributions welcome!
-- 🧩 **Modular & Extensible** – Designed for future enhancements and easy customization.
 
 ### 🔗 Dependencies
 
@@ -61,9 +62,10 @@ Built with **performance in mind**, the card leverages **intelligent refresh mec
 
 ### Latest Release: v3.0
 
+- **⚙️ Visual Configuration Editor**: New visual editor for easy, guided configuration, with smart validation and auto-upgrade of deprecated settings.
 - **🌦️ Weather Integration**: Display [weather forecasts](#weather-integration) alongside your events
 - **🕒 Improved Time Format Detection**: Automatically detects and respects all Home Assistant time format settings (12h, 24h, language-based, and system-based)
-- **⚠️ Breaking Changes**: The following parameters have been removed or renamed, please update your configurations:
+- **⚠️ Breaking Changes**: List parameter renames/removals:
   - `vertical_line_color` → `accent_color`
   - `max_events_to_show` → `compact_events_to_show`
   - `horizontal_line_width` → `day_separator_width`
