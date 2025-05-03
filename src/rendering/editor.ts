@@ -1463,7 +1463,10 @@ export class CalendarCardProEditor extends LitElement {
 
                   <div class="subsection">
                     <h5>${this._getTranslation('colors')}</h5>
-                    ${this.addTextField(`entities.${index}.color`, this._getTranslation('color'))}
+                    ${this.addTextField(
+                      `entities.${index}.color`,
+                      this._getTranslation('event_color'),
+                    )}
                     <div class="helper-text">${this._getTranslation('entity_color_note')}</div>
 
                     ${this.addTextField(
