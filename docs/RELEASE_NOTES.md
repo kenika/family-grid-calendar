@@ -6,6 +6,8 @@
 
 Calendar Card Pro now includes a comprehensive visual editor that makes configuration simple and intuitive! This highly-requested feature provides a rich, guided interface for customizing every aspect of your calendar card.
 
+<img src="https://raw.githubusercontent.com/alexpfau/calendar-card-pro/main/.github/img/example_editor.png" alt="Visual Configuration Editor" width="600"><br>
+
 - **Native Home Assistant Design** - Built with the same UI components as Home Assistant for perfect visual integration and consistent theming
 - **Smart, Context-Aware Interface** - Options only appear when relevant, reducing clutter and simplifying configuration
 - **Organized Configuration Sections** - Settings are grouped into logical, collapsible panels for easy navigation
@@ -14,6 +16,8 @@ Calendar Card Pro now includes a comprehensive visual editor that makes configur
 - **Mobile-Friendly Design** - Fully responsive interface that works on any device
 
 > **Upgrading from previous versions?** When you first open the editor after updating, any deprecated parameters in your configuration will be automatically detected. Simply click the "Update config..." button that appears to instantly migrate to the latest parameter names!
+
+> **Note:** The visual configuration editor is currently only available in English. The configured calendar card will still display in your selected language, but the editor interface itself is English-only at this time.
 
 <details>
 <summary>Editor Feature Details</summary>
@@ -28,6 +32,8 @@ Calendar Card Pro now includes a comprehensive visual editor that makes configur
 ### 🌦️ Weather Integration
 
 Calendar Card Pro now supports displaying weather forecasts directly alongside your calendar events! This powerful new integration allows you to see the expected weather conditions for each day or for specific events.
+
+<img src="https://raw.githubusercontent.com/alexpfau/calendar-card-pro/main/.github/img/example_weather.png" alt="Weather Integration" width="600"><br>
 
 - **Dual Display Positions**: Show weather in the date column, event column, or both
 - **Customizable Information**: Choose what weather data to display independently for each position
@@ -67,6 +73,12 @@ Calendar Card Pro now correctly integrates with all Home Assistant time format s
 - **Smart Language Detection** - When HA is set to use language-based time format, the card intelligently determines the appropriate format based on the language
 - **System Settings Support** - Properly detects system/browser time format preferences when HA is configured to use them
 - **Override Capability** - Still allows explicit time format configuration via the card's `time_24h` setting, independent of Home Assistant settings
+
+### New Languages
+
+Extended language support to further regions, so that 29 languages are now supported:
+
+- **Croatian Language** - Added complete Croatian translations for all calendar elements
 
 ### Parameter Updates
 

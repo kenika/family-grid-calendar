@@ -60,6 +60,8 @@ Built with **performance in mind**, the card leverages **intelligent refresh mec
 
 ## 2️⃣ What's New
 
+**➡️ View the [Full Release Notes](RELEASE_NOTES.md) for a complete list of features.**
+
 ### Latest Release: v3.0
 
 - **⚙️ Visual Configuration Editor**: New visual editor for easy, guided configuration, with smart validation and auto-upgrade of deprecated settings.
@@ -70,8 +72,6 @@ Built with **performance in mind**, the card leverages **intelligent refresh mec
   - `max_events_to_show` → `compact_events_to_show`
   - `horizontal_line_width` → `day_separator_width`
   - `horizontal_line_color` → `day_separator_color`
-
-### View the [Full Release Notes](RELEASE_NOTES.md) for a complete list of features.
 
 ### v2.4
 
@@ -171,64 +171,84 @@ Once **Calendar Card Pro** is installed, follow these steps to add and configure
 1. **Ensure a Calendar Integration is Set Up**  
    Calendar Card Pro requires at least one `calendar.*` entity in Home Assistant (e.g., **Google Calendar, CalDAV**).
 2. **Open Your Dashboard for Editing**
-
-- Navigate to **Home Assistant → Dashboard**
-- Click the three-dot menu (⋮) → **Edit Dashboard**
-
+   - Navigate to **Home Assistant → Dashboard**
+   - Click the three-dot menu (⋮) → **Edit Dashboard**
 3. **Add Calendar Card Pro**
+   - Click the ➕ **Add Card** button
+   - Search for `"Calendar"` or scroll to find `"Calendar Card Pro"`
+   - Select the card to add it to your dashboard
+4. **Configure with the Visual Editor**
+   - Click the three dots (⋮) in the top-right corner of the card
+   - Select **"Configure"** to open the visual editor
+   - Follow the intuitive interface to customize your calendar
 
-- Click the ➕ **Add Card** button
-- Search for `"Calendar"` or scroll to find `"Calendar Card Pro"`
-- Select the card to add it to your dashboard
-
-4. **Initial Setup & Configuration**
-
-- By default, the card will **automatically detect available calendars** and select the first one.
-- Use the **YAML mode** for advanced customization.
+> **Note:** The visual configuration editor is currently only available in English, while the calendar itself supports 29 languages.
 
 ### ⚙️ Customizing the Card
 
-Calendar Card Pro offers a range of **customization options** to match your needs.
+Calendar Card Pro offers two ways to customize your card:
 
-- **Control which events are displayed**
+1. **Visual Editor (Recommended)**
 
-  - Set `days_to_show` to define how many days are visible.
-  - Use `compact_events_to_show` to limit the number of events in compact mode.
+   - Open the comprehensive visual editor
+   - Organized panels guide you through all available options
+   - Changes are previewed in real-time
+   - Smart validation prevents configuration errors
 
-- **Customize colors, fonts, and layout**
-
-  - Apply different colors per calendar using the `color` option.
-  - Adjust font sizes for event details, dates, and other elements.
-  - Modify separators and spacing for a personalized look.
-
-- **Modify tap/hold actions**
-  - Set `tap_action` and `hold_action` to `expand`, `navigate`, or other HA-supported actions.
-
-##### YAML Configuration (Example)
-
-```yaml
-type: custom:calendar-card-pro
-title: 'Upcoming Events'
-entities:
-  - entity: calendar.family
-    color: '#e63946' # Custom color for family events
-  - entity: calendar.work
-    color: '#457b9d' # Custom color for work events
-days_to_show: 5
-compact_events_to_show: 5
-show_location: true
-```
+2. **YAML Configuration (Advanced)**
+   - Use YAML configuration for advanced customization or automation
+   - Reference the [📚 Configuration Variables](#6️⃣-configuration-variables) section for all available options
 
 ### 🚀 Next Steps
 
-- Explore the [📚 Configuration Variables](#6️⃣-configuration-variables) for a **complete list of available options**.
-- Discover the [✨ Features & Configuration](#5️⃣-features--configuration) section to **learn about advanced capabilities**.
-- Check out the [💡 Examples](#7️⃣-examples) section for **pre-configured setups** to get inspired.
-- Get involved! Check out the [Contributing & Roadmap](#8️⃣-contributing--roadmap) section to learn **how to contribute** and see **upcoming features**.
+- **Try the Visual Editor** - Open the card configuration and explore the intuitive editor panels to customize your calendar
+- **Discover Advanced Features** - Check out [✨ Features & Configuration](#5️⃣-features--configuration) to learn about specialized capabilities like weather integration and event filtering
+- **See Examples** - Browse the [💡 Examples](#7️⃣-examples) section for inspiration and pre-configured setups
+- **Reference Configuration** - For advanced YAML customization, use the [📚 Configuration Variables](#6️⃣-configuration-variables) as a complete reference
+- **Get Involved!** - Check out [Contributing & Roadmap](#8️⃣-contributing--roadmap) to learn how to contribute or see upcoming features
 
 <p align="right"><a href="#top">⬆️ back to top</a></p>
 
 ## 5️⃣ Features & Configuration
+
+### ⚙️ Visual Configuration Editor
+
+Calendar Card Pro includes a comprehensive visual editor that makes configuration intuitive and accessible—no YAML required!
+
+<img src="https://raw.githubusercontent.com/alexpfau/calendar-card-pro/main/.github/img/example_editor.png" alt="Visual Configuration Editor" width="600"><br>
+
+#### Editor Organization
+
+The editor is organized into logical panels that guide you through all configuration options:
+
+- **Calendar Entities** - Add, remove, and configure calendar sources
+- **Core Settings** - Basic card configuration like title, days to show, and language
+- **Appearance & Layout** - Visual styling, spacing, and card dimensions
+- **Date Display** - Date formatting, today indicators, and weekend styling
+- **Event Display** - Event content, time/location settings, and filtering options
+- **Weather Integration** - Configure weather forecasts in your calendar
+- **Interactions** - Set up tap and hold behaviors
+
+#### Key Features
+
+- **Live Preview** - See changes immediately as you configure the card
+- **Context-Aware Options** - Settings appear only when they're relevant
+- **Smart Validation** - Input validation prevents configuration errors
+- **Automatic Config Upgrader** - Detects deprecated settings from older versions
+
+> **Note:** The visual configuration editor is currently only available in English, while the calendar itself supports 29 languages. Calendar settings applied through the editor will still display properly in your configured language.
+
+<details>
+<summary>Configuration Upgrader Details</summary>
+
+When you open the editor with a configuration that uses deprecated parameters, the editor will detect this and offer a one-click upgrade. Example:
+
+- `vertical_line_color` → `accent_color`
+- `max_events_to_show` → `compact_events_to_show`
+
+Simply click "Update config..." to automatically migrate to the current parameter names.
+
+</details>
 
 ### Core Settings
 
@@ -267,6 +287,8 @@ This structure gives you granular control over how information from different ca
 #### 🔍 Event Filtering
 
 Calendar Card Pro provides powerful filtering capabilities to control exactly which events appear on your dashboard:
+
+> **Visual Editor:** Set up filters in the entity configuration panels. For each calendar entity, you can specify blocklist/allowlist patterns and configure duplicate filtering from the "Calendar Entities" section.
 
 ##### Filtering by Event Name
 
@@ -625,6 +647,8 @@ When special styling parameters are not specified, they will inherit from the ba
 
 Calendar Card Pro provides a sophisticated way to highlight the current day with a customizable indicator:
 
+> **Visual Editor:** Configure today indicators in the "Date Display" section, where you can choose from dots, pulses, glows, custom icons, emojis or images, and adjust their position.
+
 ```yaml
 # Enable and choose indicator type
 today_indicator: true # Enable basic dot indicator (default)
@@ -793,6 +817,8 @@ The progress bar is especially useful for tracking ongoing meetings, webinars, o
 ### 🌦️ Weather Integration
 
 Calendar Card Pro can display weather forecasts alongside your calendar events, providing a complete view of both your schedule and the expected weather conditions.
+
+> **Visual Editor:** Access all weather settings in the "Weather Integration" section of the editor, where you can select your weather entity and configure display options for both date and event positions.
 
 ```yaml
 type: custom:calendar-card-pro
@@ -1381,7 +1407,7 @@ Want to improve **Calendar Card Pro**? I welcome contributions of all kinds—wh
 I am continuously working on improving **Calendar Card Pro**. Here’s what’s planned for upcoming releases:
 
 - **Enhanced Event Details** – Support for event descriptions, and more.
-- **Visual Configuration Editor** – Configure all options through an intuitive UI without writing YAML.
+- **New Features & Improvements** - Feature Requests as proposed by community members.
 - **Expanded Language Support** – Adding more languages (looking for community translations).
 
 💡 Got a feature request? **Open a GitHub Issue** or start a **discussion**!
