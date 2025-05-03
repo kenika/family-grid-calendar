@@ -60,11 +60,11 @@ Built with **performance in mind**, the card leverages **intelligent refresh mec
 
 ## 2️⃣ What's New
 
-**➡️ View the [Full Release Notes](RELEASE_NOTES.md) for a complete list of features.**
+**➡️ View the [Full Release Notes](./docs/RELEASE_NOTES.md) for a complete list of features.**
 
 ### Latest Release: v3.0
 
-- **⚙️ Visual Configuration Editor**: New visual editor for easy, guided configuration, with smart validation and auto-upgrade of deprecated settings.
+- **⚙️ Visual Configuration Editor**: New visual editor for easy, guided configuration, with smart validation and auto-upgrade of deprecated settings
 - **🌦️ Weather Integration**: Display [weather forecasts](#weather-integration) alongside your events
 - **🕒 Improved Time Format Detection**: Automatically detects and respects all Home Assistant time format settings (12h, 24h, language-based, and system-based)
 - **⚠️ Breaking Changes**: List parameter renames/removals:
