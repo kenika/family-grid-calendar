@@ -1,17 +1,29 @@
 # Calendar Card Pro v3.0.0
 
-## Breaking Changes
-
-The following parameters have been removed or renamed in v3.0.0:
-
-- `max_events_to_show` (both global and entity-level) has been removed - use `compact_events_to_show` instead
-- `vertical_line_color` has been renamed to `accent_color` to better reflect its purpose as it's used for both vertical lines and event backgrounds
-- `horizontal_line_width` has been removed - use `day_separator_width` instead
-- `horizontal_line_color` has been removed - use `day_separator_color` instead
-
-If you were still using any of these parameters in your configuration, please update to the new parameter names.
-
 ## 🎉 New Features
+
+### ⚙️ Visual Configuration Editor
+
+Calendar Card Pro now includes a comprehensive visual editor that makes configuration simple and intuitive! This highly-requested feature provides a rich, guided interface for customizing every aspect of your calendar card.
+
+- **Native Home Assistant Design** - Built with the same UI components as Home Assistant for perfect visual integration and consistent theming
+- **Smart, Context-Aware Interface** - Options only appear when relevant, reducing clutter and simplifying configuration
+- **Organized Configuration Sections** - Settings are grouped into logical, collapsible panels for easy navigation
+- **Automatic Config Upgrader** - ✨ Detects deprecated settings and updates your configuration with one click
+- **Specialized Input Helpers** - Advanced pickers for entities, icons, colors and other complex options
+- **Mobile-Friendly Design** - Fully responsive interface that works on any device
+
+> **Upgrading from previous versions?** When you first open the editor after updating, any deprecated parameters in your configuration will be automatically detected. Simply click the "Update config..." button that appears to instantly migrate to the latest parameter names!
+
+<details>
+<summary>Editor Feature Details</summary>
+
+- **Logical Organization** - Edit configuration in intuitive sections including Calendar Entities, Core Settings, Appearance & Layout, Date Display, Event Display, Weather Integration, and Interactions
+- **Dynamic Fields** - Options for styling and advanced features only appear when their parent features are enabled
+- **Smart Validation** - Type-specific input fields with validation ensure your configuration is always correct
+- **Visual Helpers** - Specialized selectors for today indicators, calendar labels, and other visual elements
+- **Enhanced Accessibility** - Inclusive design principles ensure the editor is usable by everyone
+</details>
 
 ### 🌦️ Weather Integration
 
@@ -23,7 +35,10 @@ Calendar Card Pro now supports displaying weather forecasts directly alongside y
 - **Automatic Forecast Matching**: Weather data automatically matches the correct day or event time
 - **Home Assistant Integration**: Uses your existing weather entities and requires no additional setup
 
-#### Configuration Example
+> **Pro Tip:** The new visual editor makes configuring weather integration simple! Just select your weather entity and customize display options through the intuitive Weather Integration panel.
+
+<details>
+<summary>Manual YAML Configuration Details</summary>
 
 ```yaml
 type: custom:calendar-card-pro
@@ -35,34 +50,14 @@ weather:
     show_conditions: true
     show_high_temp: true
     show_low_temp: false
-    icon_size: '14px'
-    font_size: '12px'
-    color: 'var(--primary-text-color)'
   event:
     show_conditions: true
     show_temp: true
-    icon_size: '14px'
-    font_size: '12px'
-    color: 'var(--primary-text-color)'
 ```
 
-#### Configuration Options
+For full parameter documentation including styling options, see our [GitHub README](https://github.com/alexpfau/calendar-card-pro/blob/main/README.md#weather-integration).
 
-| Option                    | Type    | Default                     | Description                                                                                 |
-| ------------------------- | ------- | --------------------------- | ------------------------------------------------------------------------------------------- |
-| `entity`                  | string  | -                           | Weather entity to use for forecasts                                                         |
-| `position`                | string  | `date`                      | Where to show weather data: `'date'` (date column), `'event'` (next to events), or `'both'` |
-| `date → show_conditions`  | boolean | `true`                      | Whether to show weather condition icons in date column                                      |
-| `date → show_high_temp`   | boolean | `true`                      | Whether to show high temperature in date column                                             |
-| `date → show_low_temp`    | boolean | `false`                     | Whether to show low temperature in date column                                              |
-| `date → icon_size`        | string  | `14px`                      | Size of weather icons in date column                                                        |
-| `date → font_size`        | string  | `12px`                      | Size of weather text in date column                                                         |
-| `date → color`            | string  | `var(--primary-text-color)` | Color of weather text and icons in date column                                              |
-| `event → show_conditions` | boolean | `true`                      | Whether to show weather condition icons in event column                                     |
-| `event → show_temp`       | boolean | `true`                      | Whether to show temperature in event column                                                 |
-| `event → icon_size`       | string  | `14px`                      | Size of weather icons in event column                                                       |
-| `event → font_size`       | string  | `12px`                      | Size of weather text in event column                                                        |
-| `event → color`           | string  | `var(--primary-text-color)` | Color of weather text and icons in event column                                             |
+</details>
 
 ### 🕒 Improved Time Format Detection
 
@@ -72,6 +67,22 @@ Calendar Card Pro now correctly integrates with all Home Assistant time format s
 - **Smart Language Detection** - When HA is set to use language-based time format, the card intelligently determines the appropriate format based on the language
 - **System Settings Support** - Properly detects system/browser time format preferences when HA is configured to use them
 - **Override Capability** - Still allows explicit time format configuration via the card's `time_24h` setting, independent of Home Assistant settings
+
+### Parameter Updates
+
+The following parameters have been renamed or removed in v3.0.0 (the editor will automatically detect and update these for you):
+
+- `max_events_to_show` → `compact_events_to_show` (both global and entity-level)
+- `vertical_line_color` → `accent_color`
+- `horizontal_line_width` → `day_separator_width`
+- `horizontal_line_color` → `day_separator_color`
+
+## 🐛 Bug Fixes
+
+### Entity-level Settings Consistency
+
+- **Fixed Entity-level Location Display** - Entity-specific `show_location: true` now correctly overrides the global `show_location: false` setting, ensuring consistent behavior with other entity-level settings like `show_time`
+- **Improved Setting Inheritance** - Enhanced how entity-specific configurations are processed, making entity settings properly override global settings in all cases
 
 ## Related Issues
 
