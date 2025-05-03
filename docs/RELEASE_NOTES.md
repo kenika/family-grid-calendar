@@ -79,10 +79,13 @@ The following parameters have been renamed or removed in v3.0.0 (the editor will
 
 ## 🐛 Bug Fixes
 
+### Today Indicator Emoji Detection
+
+- **Improved Emoji Support** – Today indicator now reliably detects and displays all emoji characters, including complex and multi-codepoint emojis, by using Unicode property escapes for robust emoji detection.
+
 ### Entity-level Settings Consistency
 
-- **Fixed Entity-level Location Display** - Entity-specific `show_location: true` now correctly overrides the global `show_location: false` setting, ensuring consistent behavior with other entity-level settings like `show_time`
-- **Improved Setting Inheritance** - Enhanced how entity-specific configurations are processed, making entity settings properly override global settings in all cases
+- **Fixed Entity-level Location Display** - Entity-specific `show_location: true` now correctly overrides the global `show_location: false` setting, ensuring consistent behavior with other entity-level settings like `show_time`.
 
 ## Related Issues
 

@@ -98,8 +98,13 @@ export function getTodayIndicatorType(value: string | boolean): string {
     // Check if value is an image path
     if (value.startsWith('/') || /\.(jpg|jpeg|png|gif|svg|webp)$/i.test(value)) return 'image';
 
-    // Assume emoji if it's a short string (typically 1-2 characters)
-    if (value.length <= 2) return 'emoji';
+    // Use Unicode property escapes to match any emoji character in the string.
+    // This regex will match a wide range of emoji code points, including single and multi-codepoint emojis.
+    // It is supported in all modern browsers (ES2018+), but may not match every possible emoji sequence (e.g., some flags or ZWJ sequences).
+    const emojiRegex = /\p{Emoji}/u;
+    if (emojiRegex.test(value)) {
+      return 'emoji';
+    }
 
     // Default to dot if unrecognized
     return 'dot';
