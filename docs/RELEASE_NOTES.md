@@ -105,8 +105,11 @@ The following parameters have been renamed or removed in v3.0.0 (the editor will
 
 This release addresses community-reported issues:
 
-- [#107](https://github.com/alexpfau/calendar-card-pro/issues/107) - Weather Forecast Integration
-- [#196](https://github.com/alexpfau/calendar-card-pro/issues/196) - Auto-detect 12/24h time format from HA
+- [#107](https://github.com/alexpfau/calendar-card-pro/issues/107) - Weather Forecast Integration by @rothomas
+- [#196](https://github.com/alexpfau/calendar-card-pro/issues/196) - Auto-detect 12/24h time format from HA by @tomofdarkness
+- [#199](https://github.com/alexpfau/calendar-card-pro/pull/199) - Added Croatian language translation by @adamivangrgic
+
+**Full Changelog**: https://github.com/alexpfau/calendar-card-pro/compare/v2.4.5...v3.0.0
 
 ---
 
