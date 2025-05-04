@@ -1,5 +1,7 @@
 # Calendar Card Pro v3.0.0
 
+**Visual configuration meets weather integration.** This major release transforms how you interact with and view calendar information, combining intuitive visual configuration with powerful weather forecasts—making your calendar both easier to set up and more contextually informative than ever before.
+
 ## 🎉 New Features
 
 ### ⚙️ Visual Configuration Editor
