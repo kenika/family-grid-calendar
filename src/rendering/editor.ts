@@ -15,6 +15,7 @@ import { property } from 'lit/decorators.js';
 import styles from './editor.styles';
 import * as Types from '../config/types';
 import * as Config from '../config/config';
+import * as Helpers from '../utils/helpers';
 import * as Localize from '../translations/localize';
 
 // Import Material Design icons
@@ -405,6 +406,13 @@ export class CalendarCardProEditor extends LitElement {
         );
       }
       return;
+    } else if (name === 'start_date_mode') {
+      this._handleStartDateModeChange(target.value);
+      return;
+    } else if (name === 'start_date_fixed' || name === 'start_date_offset') {
+      this.setConfigValue('start_date', target.value);
+      this.requestUpdate();
+      return;
     }
 
     let value: string | boolean | number = target.value;
@@ -442,6 +450,55 @@ export class CalendarCardProEditor extends LitElement {
       this.setConfigValue(name, value);
     } catch {
       // Invalid JSON - don't update
+    }
+  }
+
+  /**
+   * Determines the mode (default/fixed/offset) from a start_date value
+   * @returns 'default' | 'fixed' | 'offset'
+   */
+  private _getStartDateMode(): 'default' | 'fixed' | 'offset' {
+    const value = this.getConfigValue('start_date', '');
+    // Ensure we're working with a string
+    const strValue = value !== undefined && value !== null ? String(value) : '';
+
+    if (!strValue || strValue === '') return 'default';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(strValue)) return 'fixed';
+    if (/^[+-]?\d+$/.test(strValue)) return 'offset';
+    return 'fixed'; // fallback for legacy/unknown
+  }
+
+  /**
+   * Gets the appropriate value for each start_date input mode
+   * @param mode The current input mode ('fixed' or 'offset')
+   * @returns The appropriate value for the selected mode
+   */
+  private _getStartDateValue(mode: 'fixed' | 'offset'): string {
+    const value = this.getConfigValue('start_date', '');
+    // Ensure we're working with a string
+    const strValue = value !== undefined && value !== null ? String(value) : '';
+
+    if (mode === 'fixed' && /^\d{4}-\d{2}-\d{2}$/.test(strValue)) return strValue;
+    if (mode === 'offset' && /^[+-]?\d+$/.test(strValue)) return strValue;
+    return '';
+  }
+
+  /**
+   * Handles changes to the start_date mode
+   * @param mode The selected mode
+   */
+  private _handleStartDateModeChange(mode: string): void {
+    if (mode === 'default') {
+      this.setConfigValue('start_date', undefined);
+    } else if (mode === 'fixed') {
+      // Set to today as default for fixed date
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      this.setConfigValue('start_date', `${yyyy}-${mm}-${dd}`);
+    } else if (mode === 'offset') {
+      this.setConfigValue('start_date', '+0');
     }
   }
 
@@ -508,8 +565,42 @@ export class CalendarCardProEditor extends LitElement {
             <div class="helper-text">${this._getTranslation('time_range_note')}</div>
             ${this.addTextField('days_to_show', this._getTranslation('days_to_show'), 'number')}
             <div class="helper-text">${this._getTranslation('days_to_show_note')}</div>
-            ${this.addTextField('start_date', this._getTranslation('start_date'))}
-            <div class="helper-text">${this._getTranslation('start_date_note')}</div>
+            ${this.addSelectField(
+              'start_date_mode',
+              this._getTranslation('start_date_mode'),
+              [
+                { value: 'default', label: this._getTranslation('start_date_mode_default') },
+                { value: 'fixed', label: this._getTranslation('start_date_mode_fixed') },
+                { value: 'offset', label: this._getTranslation('start_date_mode_offset') },
+              ],
+              false,
+              String(this._getStartDateMode()),
+              (value) => {
+                this._handleStartDateModeChange(value);
+                this.requestUpdate();
+              },
+            )}
+            ${(() => {
+              const mode = this._getStartDateMode();
+              if (mode === 'fixed') {
+                return this.addDateField(
+                  'start_date_fixed',
+                  this._getTranslation('start_date_fixed'),
+                  this._getStartDateValue('fixed'),
+                );
+              } else if (mode === 'offset') {
+                return html`
+                  ${this.addTextField(
+                    'start_date_offset',
+                    this._getTranslation('start_date_offset'),
+                    'text',
+                    this._getStartDateValue('offset'),
+                  )}
+                  <div class="helper-text">${this._getTranslation('start_date_offset_note')}</div>
+                `;
+              }
+              return html``;
+            })()}
 
             <!-- Compact Mode -->
             <h3>${this._getTranslation('compact_mode')}</h3>
@@ -1313,6 +1404,130 @@ export class CalendarCardProEditor extends LitElement {
           `,
         )}
       </ha-select>
+    `;
+  }
+
+  /**
+   * Adds a date picker field styled to match native Home Assistant UI components.
+   * @param name Config key
+   * @param label Field label
+   * @param defaultValue Default value in 'YYYY-MM-DD' format
+   * @returns Lit template for the date picker field
+   */
+  addDateField(name: string, label?: string, defaultValue?: string): TemplateResult {
+    let value = this.getConfigValue(name, defaultValue);
+    if (value === undefined) value = '';
+
+    // Format date for display using locale settings
+    const displayDate =
+      value && (typeof value === 'string' || typeof value === 'number')
+        ? Helpers.formatDateByLocale(new Date(value as string | number), this.hass?.locale)
+        : '';
+
+    return html`
+      <div class="date-input">
+        <div class="mdc-text-field mdc-text-field--filled">
+          <!-- Ripple overlay element for hover effect -->
+          <div class="mdc-text-field__ripple"></div>
+
+          <span class="mdc-floating-label mdc-floating-label--float-above">
+            ${label ?? this._getTranslation(name)}
+          </span>
+
+          <div class="value-container">
+            <span class="value-text">${displayDate}</span>
+          </div>
+        </div>
+
+        <input
+          type="date"
+          name="${name}"
+          .value="${value}"
+          @focus="${(e: FocusEvent) => {
+            // Apply focus styles when input gets focus
+            const parent = (e.target as HTMLElement).closest('.date-input') as HTMLElement;
+            const field = parent?.querySelector('.mdc-text-field') as HTMLElement;
+            const label = parent?.querySelector('.mdc-floating-label') as HTMLElement;
+            const ripple = parent?.querySelector('.mdc-text-field__ripple') as HTMLElement;
+
+            if (field) {
+              field.classList.add('focused');
+              // Add this line to set the border to blue when focused
+              field.style.borderBottom = '2px solid var(--primary-color)';
+              // Also set the label color to match the primary color
+              if (label) {
+                label.style.color = 'var(--primary-color)';
+              }
+            }
+
+            if (ripple) {
+              ripple.style.opacity = '0.08';
+            }
+          }}"
+          @blur="${(e: FocusEvent) => {
+            // Remove focus styles when input loses focus
+            const parent = (e.target as HTMLElement).closest('.date-input') as HTMLElement;
+            const field = parent?.querySelector('.mdc-text-field') as HTMLElement;
+            const label = parent?.querySelector('.mdc-floating-label') as HTMLElement;
+            const ripple = parent?.querySelector('.mdc-text-field__ripple') as HTMLElement;
+
+            if (field) {
+              field.classList.remove('focused');
+              // Reset the border when unfocused
+              field.style.borderBottom =
+                '1px solid var(--mdc-text-field-idle-line-color, var(--secondary-text-color))';
+              // Reset the label color
+              if (label) {
+                label.style.color = 'var(--mdc-select-label-ink-color, rgba(0,0,0,.6))';
+              }
+            }
+
+            if (ripple) {
+              ripple.style.opacity = '0';
+            }
+          }}"
+          @mouseover="${(e: MouseEvent) => {
+            // Apply hover styles
+            const parent = (e.target as HTMLElement).closest('.date-input') as HTMLElement;
+            const field = parent?.querySelector('.mdc-text-field') as HTMLElement;
+            const ripple = parent?.querySelector('.mdc-text-field__ripple') as HTMLElement;
+
+            if (field && !field.classList.contains('focused')) {
+              field.style.borderBottomColor = 'var(--primary-text-color)';
+
+              if (ripple) {
+                ripple.style.opacity = '0.04';
+              }
+            }
+          }}"
+          @mouseout="${(e: MouseEvent) => {
+            // Remove hover styles
+            const parent = (e.target as HTMLElement).closest('.date-input') as HTMLElement;
+            const field = parent?.querySelector('.mdc-text-field') as HTMLElement;
+            const ripple = parent?.querySelector('.mdc-text-field__ripple') as HTMLElement;
+
+            if (field && !field.classList.contains('focused')) {
+              field.style.borderBottomColor =
+                'var(--mdc-text-field-idle-line-color, var(--secondary-text-color))';
+
+              if (ripple) {
+                ripple.style.opacity = '0';
+              }
+            }
+          }}"
+          @change="${(e: Event) => {
+            this._valueChanged(e);
+
+            // Also update the display value
+            const target = e.target as HTMLInputElement;
+            const parent = target.closest('.date-input');
+            const valueSpan = parent?.querySelector('.value-container span');
+            if (valueSpan && target.value) {
+              valueSpan.textContent = new Date(target.value).toLocaleDateString();
+            }
+          }}"
+        />
+      </div>
     `;
   }
 
