@@ -43,11 +43,12 @@ Built with **performance in mind**, the card leverages **intelligent refresh mec
 - 🎨 **Sleek & Minimalist Design** – Clean, modern, and visually appealing layout.
 - ✅ **Multi-Calendar Support** – Display multiple calendars with unique styling.
 - 📅 **Compact & Expandable Views** – Adaptive views to suit different dashboard needs.
+- ⚙️ **Visual Configuration Editor** – Intuitive interface for effortless card setup.
 - 🔧 **Highly Customizable** – Fine-tune layout, colors, event details, and behavior.
+- 🌦️ **Weather Integration** – Display weather forecasts alongside your calendar events.
 - ⚡ **Optimized Performance** – Smart caching, progressive rendering, and minimal API calls.
 - 💡 **Deep Home Assistant Integration** – Theme-aware with native ripple effects.
-- 🌍 **Multi-Language Support** – [Available in 28 languages](#-adding-translations), community contributions welcome!
-- 🧩 **Modular & Extensible** – Designed for future enhancements and easy customization.
+- 🌍 **Multi-Language Support** – [Available in 29 languages](#-adding-translations), community contributions welcome!
 
 ### 🔗 Dependencies
 
@@ -59,7 +60,20 @@ Built with **performance in mind**, the card leverages **intelligent refresh mec
 
 ## 2️⃣ What's New
 
-### Latest Release v2.4
+**➡️ View the [Full Release Notes](./docs/RELEASE_NOTES.md) for a complete list of features.**
+
+### Latest Release: v3.0
+
+- **⚙️ Visual Configuration Editor**: New visual editor for easy, guided configuration, with smart validation and auto-upgrade of deprecated settings
+- **🌦️ Weather Integration**: Display [weather forecasts](#weather-integration) alongside your events
+- **🕒 Improved Time Format Detection**: Automatically detects and respects all Home Assistant time format settings (12h, 24h, language-based, and system-based)
+- **⚠️ Breaking Changes**: List parameter renames/removals:
+  - `vertical_line_color` → `accent_color`
+  - `max_events_to_show` → `compact_events_to_show`
+  - `horizontal_line_width` → `day_separator_width`
+  - `horizontal_line_color` → `day_separator_color`
+
+### v2.4
 
 - 🌟 **Today Indicator**: Highlight today with [customizable dot, pulse, glow effect, emoji, or custom icon](#-today-indicator)
 - 🎨 **Today's Date Styling**: Customize the [appearance of today's date](#-date-column-customization) in the calendar with dedicated color options (`today_weekday_color`, `today_day_color`, `today_month_color`)
@@ -157,64 +171,84 @@ Once **Calendar Card Pro** is installed, follow these steps to add and configure
 1. **Ensure a Calendar Integration is Set Up**  
    Calendar Card Pro requires at least one `calendar.*` entity in Home Assistant (e.g., **Google Calendar, CalDAV**).
 2. **Open Your Dashboard for Editing**
-
-- Navigate to **Home Assistant → Dashboard**
-- Click the three-dot menu (⋮) → **Edit Dashboard**
-
+   - Navigate to **Home Assistant → Dashboard**
+   - Click the three-dot menu (⋮) → **Edit Dashboard**
 3. **Add Calendar Card Pro**
+   - Click the ➕ **Add Card** button
+   - Search for `"Calendar"` or scroll to find `"Calendar Card Pro"`
+   - Select the card to add it to your dashboard
+4. **Configure with the Visual Editor**
+   - Click the three dots (⋮) in the top-right corner of the card
+   - Select **"Configure"** to open the visual editor
+   - Follow the intuitive interface to customize your calendar
 
-- Click the ➕ **Add Card** button
-- Search for `"Calendar"` or scroll to find `"Calendar Card Pro"`
-- Select the card to add it to your dashboard
-
-4. **Initial Setup & Configuration**
-
-- By default, the card will **automatically detect available calendars** and select the first one.
-- Use the **YAML mode** for advanced customization.
+> **Note:** The visual configuration editor is currently only available in English, while the calendar itself supports 29 languages.
 
 ### ⚙️ Customizing the Card
 
-Calendar Card Pro offers a range of **customization options** to match your needs.
+Calendar Card Pro offers two ways to customize your card:
 
-- **Control which events are displayed**
+1. **Visual Editor (Recommended)**
 
-  - Set `days_to_show` to define how many days are visible.
-  - Use `compact_events_to_show` to limit the number of events in compact mode.
+   - Open the comprehensive visual editor
+   - Organized panels guide you through all available options
+   - Changes are previewed in real-time
+   - Smart validation prevents configuration errors
 
-- **Customize colors, fonts, and layout**
-
-  - Apply different colors per calendar using the `color` option.
-  - Adjust font sizes for event details, dates, and other elements.
-  - Modify separators and spacing for a personalized look.
-
-- **Modify tap/hold actions**
-  - Set `tap_action` and `hold_action` to `expand`, `navigate`, or other HA-supported actions.
-
-##### YAML Configuration (Example)
-
-```yaml
-type: custom:calendar-card-pro
-title: 'Upcoming Events'
-entities:
-  - entity: calendar.family
-    color: '#e63946' # Custom color for family events
-  - entity: calendar.work
-    color: '#457b9d' # Custom color for work events
-days_to_show: 5
-compact_events_to_show: 5
-show_location: true
-```
+2. **YAML Configuration (Advanced)**
+   - Use YAML configuration for advanced customization or automation
+   - Reference the [📚 Configuration Variables](#6️⃣-configuration-variables) section for all available options
 
 ### 🚀 Next Steps
 
-- Explore the [📚 Configuration Variables](#6️⃣-configuration-variables) for a **complete list of available options**.
-- Discover the [✨ Features & Configuration](#5️⃣-features--configuration) section to **learn about advanced capabilities**.
-- Check out the [💡 Examples](#7️⃣-examples) section for **pre-configured setups** to get inspired.
-- Get involved! Check out the [Contributing & Roadmap](#8️⃣-contributing--roadmap) section to learn **how to contribute** and see **upcoming features**.
+- **Try the Visual Editor** - Open the card configuration and explore the intuitive editor panels to customize your calendar
+- **Discover Advanced Features** - Check out [✨ Features & Configuration](#5️⃣-features--configuration) to learn about specialized capabilities like weather integration and event filtering
+- **See Examples** - Browse the [💡 Examples](#7️⃣-examples) section for inspiration and pre-configured setups
+- **Reference Configuration** - For advanced YAML customization, use the [📚 Configuration Variables](#6️⃣-configuration-variables) as a complete reference
+- **Get Involved!** - Check out [Contributing & Roadmap](#8️⃣-contributing--roadmap) to learn how to contribute or see upcoming features
 
 <p align="right"><a href="#top">⬆️ back to top</a></p>
 
 ## 5️⃣ Features & Configuration
+
+### ⚙️ Visual Configuration Editor
+
+Calendar Card Pro includes a comprehensive visual editor that makes configuration intuitive and accessible—no YAML required!
+
+<img src="https://raw.githubusercontent.com/alexpfau/calendar-card-pro/main/.github/img/example_editor.png" alt="Visual Configuration Editor" width="600"><br>
+
+#### Editor Organization
+
+The editor is organized into logical panels that guide you through all configuration options:
+
+- **Calendar Entities** - Add, remove, and configure calendar sources
+- **Core Settings** - Basic card configuration like title, days to show, and language
+- **Appearance & Layout** - Visual styling, spacing, and card dimensions
+- **Date Display** - Date formatting, today indicators, and weekend styling
+- **Event Display** - Event content, time/location settings, and filtering options
+- **Weather Integration** - Configure weather forecasts in your calendar
+- **Interactions** - Set up tap and hold behaviors
+
+#### Key Features
+
+- **Live Preview** - See changes immediately as you configure the card
+- **Context-Aware Options** - Settings appear only when they're relevant
+- **Smart Validation** - Input validation prevents configuration errors
+- **Automatic Config Upgrader** - Detects deprecated settings from older versions
+
+> **Note:** The visual configuration editor is currently only available in English, while the calendar itself supports 29 languages. Calendar settings applied through the editor will still display properly in your configured language.
+
+<details>
+<summary>Configuration Upgrader Details</summary>
+
+When you open the editor with a configuration that uses deprecated parameters, the editor will detect this and offer a one-click upgrade. Example:
+
+- `vertical_line_color` → `accent_color`
+- `max_events_to_show` → `compact_events_to_show`
+
+Simply click "Update config..." to automatically migrate to the current parameter names.
+
+</details>
 
 ### Core Settings
 
@@ -253,6 +287,8 @@ This structure gives you granular control over how information from different ca
 #### 🔍 Event Filtering
 
 Calendar Card Pro provides powerful filtering capabilities to control exactly which events appear on your dashboard:
+
+> **Visual Editor:** Set up filters in the entity configuration panels. For each calendar entity, you can specify blocklist/allowlist patterns and configure duplicate filtering from the "Calendar Entities" section.
 
 ##### Filtering by Event Name
 
@@ -331,7 +367,6 @@ days_to_show: 7
 
 # Event limit for compact mode
 compact_events_to_show: 5 # Preferred: New parameter name
-max_events_to_show: 5 # Legacy parameter: Same function, will be deprecated in v3.0
 
 # Day limit in compact mode
 compact_days_to_show: 2 # Fewer days to display in compact mode
@@ -612,6 +647,8 @@ When special styling parameters are not specified, they will inherit from the ba
 
 Calendar Card Pro provides a sophisticated way to highlight the current day with a customizable indicator:
 
+> **Visual Editor:** Configure today indicators in the "Date Display" section, where you can choose from dots, pulses, glows, custom icons, emojis or images, and adjust their position.
+
 ```yaml
 # Enable and choose indicator type
 today_indicator: true # Enable basic dot indicator (default)
@@ -777,6 +814,101 @@ progress_bar_width: '80px'
 
 The progress bar is especially useful for tracking ongoing meetings, webinars, or appointments, giving you a quick visual reference of how much time remains.
 
+### 🌦️ Weather Integration
+
+Calendar Card Pro can display weather forecasts alongside your calendar events, providing a complete view of both your schedule and the expected weather conditions.
+
+> **Visual Editor:** Access all weather settings in the "Weather Integration" section of the editor, where you can select your weather entity and configure display options for both date and event positions.
+
+```yaml
+type: custom:calendar-card-pro
+entities:
+  - calendar.family
+days_to_show: 5
+weather:
+  entity: weather.forecast_home
+  position: both # Options: 'date', 'event', or 'both'
+  date:
+    # Date column shows condition icon and high temperature only
+    show_conditions: true
+    show_high_temp: true
+    show_low_temp: false
+    icon_size: '16px'
+    font_size: '14px'
+    color: '#3498db'
+  event:
+    # Event row shows just the temperature (no icon)
+    show_conditions: false
+    show_temp: true
+    font_size: '13px'
+    color: 'var(--secondary-text-color)'
+```
+
+<img src="https://raw.githubusercontent.com/alexpfau/calendar-card-pro/main/.github/img/example_weather.png" alt="Weather Integration" width="600"><br>
+
+This flexible configuration allows you to create a personalized experience that shows exactly the weather information you need, where you need it.
+
+#### Weather Configuration Options
+
+| Option                    | Type    | Default                     | Description                                                                                 |
+| ------------------------- | ------- | --------------------------- | ------------------------------------------------------------------------------------------- |
+| `entity`                  | string  | -                           | Weather entity to use for forecasts                                                         |
+| `position`                | string  | `date`                      | Where to show weather data: `'date'` (date column), `'event'` (next to events), or `'both'` |
+| `date → show_conditions`  | boolean | `true`                      | Whether to show weather condition icons in date column                                      |
+| `date → show_high_temp`   | boolean | `true`                      | Whether to show high temperature in date column                                             |
+| `date → show_low_temp`    | boolean | `false`                     | Whether to show low temperature in date column                                              |
+| `date → icon_size`        | string  | `14px`                      | Size of weather icons in date column                                                        |
+| `date → font_size`        | string  | `12px`                      | Size of weather text in date column                                                         |
+| `date → color`            | string  | `var(--primary-text-color)` | Color of weather text and icons in date column                                              |
+| `event → show_conditions` | boolean | `true`                      | Whether to show weather condition icons in event column                                     |
+| `event → show_temp`       | boolean | `true`                      | Whether to show temperature in event column                                                 |
+| `event → icon_size`       | string  | `14px`                      | Size of weather icons in event column                                                       |
+| `event → font_size`       | string  | `12px`                      | Size of weather text in event column                                                        |
+| `event → color`           | string  | `var(--primary-text-color)` | Color of weather text and icons in event column                                             |
+
+#### Weather Display Positions
+
+You can choose where weather information appears in your calendar:
+
+- `date`: Shows daily forecasts in the date column (left side)
+- `event`: Shows hourly forecasts next to event titles
+- `both`: Displays weather in both positions simultaneously
+
+#### Position-Specific Configuration
+
+Each display position can be customized independently with different content and styling:
+
+**Date Column Weather:**
+
+- `show_conditions`: Show weather condition icon (sun, cloud, rain, etc.)
+- `show_high_temp`: Show high temperature
+- `show_low_temp`: Show low temperature
+- `icon_size`: Weather icon size
+- `font_size`: Temperature text size
+- `color`: Text and icon color
+
+**Event Weather:**
+
+- `show_conditions`: Show weather condition icon
+- `show_temp`: Show temperature
+- `icon_size`: Weather icon size
+- `font_size`: Temperature text size
+- `color`: Text and icon color
+
+#### Benefits and Use Cases
+
+Weather integration is particularly useful for:
+
+- Planning outdoor activities based on weather conditions
+- Seeing at a glance if you'll need an umbrella for your appointments
+- Preparing for weather changes during multi-day events
+- Quickly checking the forecast for specific event times
+
+The feature automatically matches weather data to the correct time periods:
+
+- Daily forecasts for the date column
+- Hourly forecasts for specific event times
+
 ### Actions & Interactions
 
 #### 🔄 Expandable Calendar View
@@ -785,14 +917,14 @@ One of Calendar Card Pro's most powerful features is the ability to toggle betwe
 
 ```yaml
 # Limit events in compact view
-max_events_to_show: 5
+compact_events_to_show: 5
 
 # Enable expand/collapse with tap
 tap_action:
   action: expand
 ```
 
-When a `max_events_to_show` limit is set, the card displays that number of events initially, adding a subtle indicator when more events are available. The `expand` action then allows users to toggle between this compact view and the full list of events.
+When a `compact_events_to_show` limit is set, the card displays that number of events initially, adding a subtle indicator when more events are available. The `expand` action then allows users to toggle between this compact view and the full list of events.
 
 When using expansion with both global and per-calendar limits:
 
@@ -808,12 +940,12 @@ entities:
   - entity: calendar.family
     # No limit for family calendar
   - entity: calendar.work
-    max_events_to_show: 2
+    compact_events_to_show: 2
     # Never show more than 2 work events
   - entity: calendar.holidays
-    max_events_to_show: 1
+    compact_events_to_show: 1
     # Only show 1 holiday event
-max_events_to_show: 4
+compact_events_to_show: 4
 # Show at most 4 events total in compact mode
 
 tap_action:
@@ -992,7 +1124,6 @@ These examples demonstrate how Calendar Card Pro can be customized to match any 
 | `compact_days_to_show`                     | number            | -                                                  | Number of days to display in compact mode                                                                                                                                                                                                                   |
 | `compact_events_to_show`                   | number            | -                                                  | Number of events to show in compact mode                                                                                                                                                                                                                    |
 | `compact_events_complete_days`             | boolean           | `false`                                            | When true, shows all events for days that have at least one event displayed                                                                                                                                                                                 |
-| `max_events_to_show`                       | number            | -                                                  | **Deprecated** - Use compact_events_to_show instead                                                                                                                                                                                                         |
 | `show_empty_days`                          | boolean           | `false`                                            | Whether to show days with no events (with "No events" message)                                                                                                                                                                                              |
 | `filter_duplicates`                        | boolean           | `false`                                            | Remove duplicate events that appear in multiple calendars                                                                                                                                                                                                   |
 | `split_multiday_events`                    | boolean           | `false`                                            | Display multi-day events on each day they cover                                                                                                                                                                                                             |
@@ -1003,13 +1134,13 @@ These examples demonstrate how Calendar Card Pro can be customized to match any 
 | `title_color`                              | string            | `--calendar-card-color-title`                      | Card title font color                                                                                                                                                                                                                                       |
 | **Layout and Spacing**                     |                   |                                                    |                                                                                                                                                                                                                                                             |
 | `background_color`                         | string            | `--ha-card-background`                             | Card background color                                                                                                                                                                                                                                       |
+| `accent_color`                             | string            | `#03a9f4`                                          | Vertical line separator color                                                                                                                                                                                                                               |
+| `vertical_line_width`                      | string            | `2px`                                              | Vertical line separator width                                                                                                                                                                                                                               |
 | `day_spacing`                              | string            | `5px`                                              | Spacing between different calendar day rows (replaces row_spacing)                                                                                                                                                                                          |
 | `event_spacing`                            | string            | `4px`                                              | Vertical padding within each event                                                                                                                                                                                                                          |
 | `additional_card_spacing`                  | string            | `0px`                                              | Additional top/bottom padding for the card                                                                                                                                                                                                                  |
 | `height`                                   | string            | `auto`                                             | Sets a fixed, exact height for the card regardless of content amount (always this height, never more or less)                                                                                                                                               |
 | `max_height`                               | string            | `none`                                             | Allows the card to grow with content up to this maximum height limit                                                                                                                                                                                        |
-| `vertical_line_width                       | string            | `2px`                                              | Vertical line separator width                                                                                                                                                                                                                               |
-| `vertical_line_color`                      | string            | `#03a9f4`                                          | Vertical line separator color                                                                                                                                                                                                                               |
 | **Week Numbers and Horizontal Separators** |                   |                                                    |                                                                                                                                                                                                                                                             |
 | `show_week_numbers`                        | string            | `null`                                             | Week number display method ('iso', 'simple', or null to disable)                                                                                                                                                                                            |
 | `show_current_week_number`                 | boolean           | `true`                                             | Whether to show week number for the first/current week in view                                                                                                                                                                                              |
@@ -1023,8 +1154,6 @@ These examples demonstrate how Calendar Card Pro can be customized to match any 
 | `week_separator_color`                     | string            | `#03a9f450`                                        | Color of separator line between weeks                                                                                                                                                                                                                       |
 | `month_separator_width`                    | string            | `0px`                                              | Width of separator line between months                                                                                                                                                                                                                      |
 | `month_separator_color`                    | string            | `var(--primary-text-color)`                        | Color of separator line between months                                                                                                                                                                                                                      |
-| `horizontal_line_width`                    | string            | `0px`                                              | **Deprecated** - Use day_separator_width instead                                                                                                                                                                                                            |
-| `horizontal_line_color`                    | string            | `var(--secondary-text-color)`                      | **Deprecated** - Use day_separator_color instead                                                                                                                                                                                                            |
 | **Today Indicator**                        |                   |                                                    |
 | `today_indicator`                          | boolean or string | `false`                                            | Today indicator type: `true`/`dot` (basic dot), `pulse` (animated dot), `glow` (glowing effect), custom MDI icon (e.g., `mdi:star`), emoji, or image path                                                                                                   |
 | `today_indicator_position`                 | string            | `15% 50%`                                          | Position of today indicator in CSS-like format (x% y%)                                                                                                                                                                                                      |
@@ -1058,7 +1187,7 @@ These examples demonstrate how Calendar Card Pro can be customized to match any 
 | `event_color`                              | string            | `--primary-text-color`                             | Event title font color                                                                                                                                                                                                                                      |
 | `show_time`                                | boolean           | `true`                                             | Whether to show event times                                                                                                                                                                                                                                 |
 | `show_single_allday_time`                  | boolean           | `true`                                             | Whether to show time display for all-day single-day events                                                                                                                                                                                                  |
-| `time_24h`                                 | boolean           | `true`                                             | Whether to use 24-hour time format                                                                                                                                                                                                                          |
+| `time_24h`                                 | boolean           | `System`                                           | Whether to use 24-hour time format (auto-detects from HA)                                                                                                                                                                                                   |
 | `show_end_time`                            | boolean           | `true`                                             | Whether to show event end times                                                                                                                                                                                                                             |
 | `time_icon_size`                           | string            | `14px`                                             | Clock icon size (replaces time_location_icon_size)                                                                                                                                                                                                          |
 | `time_font_size`                           | string            | `12px`                                             | Event time font size                                                                                                                                                                                                                                        |
@@ -1068,6 +1197,12 @@ These examples demonstrate how Calendar Card Pro can be customized to match any 
 | `location_icon_size`                       | string            | `14px`                                             | Location icon size (replaces time_location_icon_size)                                                                                                                                                                                                       |
 | `location_font_size`                       | string            | `12px`                                             | Event location font size                                                                                                                                                                                                                                    |
 | `location_color`                           | string            | `--secondary-text-color`                           | Event location font color                                                                                                                                                                                                                                   |
+| **Weather**                                |                   |                                                    |                                                                                                                                                                                                                                                             |
+| `weather`                                  | object            | -                                                  | Weather configuration object containing the below settings                                                                                                                                                                                                  |
+| `weather → entity`                         | string            | -                                                  | Home Assistant weather entity to use for forecasts                                                                                                                                                                                                          |
+| `weather → position`                       | string            | `date`                                             | Where to show weather data: `date` (in date column), `event` (next to events), or `both` (in both positions)                                                                                                                                                |
+| `weather → date`                           | object            | -                                                  | Configuration for weather display in the date column                                                                                                                                                                                                        |
+| `weather → event`                          | object            | -                                                  | Configuration for weather display next to events                                                                                                                                                                                                            |
 | **Actions**                                |                   |                                                    |                                                                                                                                                                                                                                                             |
 | `tap_action`                               | object            | `none`                                             | Action when tapping the card                                                                                                                                                                                                                                |
 | `hold_action`                              | object            | `none`                                             | Action when holding the card                                                                                                                                                                                                                                |
@@ -1199,12 +1334,14 @@ title_color: '#baf1ff'
 
 # Layout and Spacing
 background_color: '#eeeeee50'
+accent_color: '#baf1ff'
+vertical_line_width: 0px
 row_spacing: 10px
 additional_card_spacing: 0px
-vertical_line_width: 0px
-vertical_line_color: '#baf1ff'
-horizontal_line_width: 2px
-horizontal_line_color: '#baf1ff80'
+
+# Week Numbers and Horizontal Separators
+day_separator_width: 2px
+day_separator_color: '#baf1ff80'
 
 # Date Column
 date_vertical_alignment: middle
@@ -1269,8 +1406,8 @@ Want to improve **Calendar Card Pro**? I welcome contributions of all kinds—wh
 
 I am continuously working on improving **Calendar Card Pro**. Here’s what’s planned for upcoming releases:
 
-- **Enhanced Event Details** – Support for event descriptions, recurring event indicators, and more.
-- **Visual Configuration Editor** – Configure all options through an intuitive UI without writing YAML.
+- **Enhanced Event Details** – Support for event descriptions, and more.
+- **New Features & Improvements** - Feature Requests as proposed by community members.
 - **Expanded Language Support** – Adding more languages (looking for community translations).
 
 💡 Got a feature request? **Open a GitHub Issue** or start a **discussion**!
@@ -1298,6 +1435,7 @@ For those interested in contributing code, I maintain detailed **[architecture d
 - **German** (`de`)
 - **Greek** (`el`)
 - **Hebrew** (`he`)
+- **Croatian** (`hr`)
 - **Hungarian** (`hu`)
 - **Icelandic** (`is`)
 - **Italian** (`it`)

@@ -24,9 +24,6 @@ export interface Config {
   split_multiday_events: boolean;
   language?: string;
 
-  /** @deprecated Use compact_events_to_show instead. Will be removed in v3.0 */
-  max_events_to_show?: number;
-
   // Header
   title?: string;
   title_font_size?: string;
@@ -34,18 +31,13 @@ export interface Config {
 
   // Layout and spacing
   background_color: string;
+  accent_color: string;
+  vertical_line_width: string;
   day_spacing: string;
   event_spacing: string;
   additional_card_spacing: string;
   max_height: string;
   height: string;
-  vertical_line_width: string;
-  vertical_line_color: string;
-
-  /** @deprecated Use day_separator_width instead. Will be removed in v3.0 */
-  horizontal_line_width: string;
-  /** @deprecated Use day_separator_color instead. Will be removed in v3.0 */
-  horizontal_line_color: string;
 
   // Week numbers and horizontal separators
   first_day_of_week: 'sunday' | 'monday' | 'system';
@@ -96,7 +88,7 @@ export interface Config {
   empty_day_color: string;
   show_time: boolean;
   show_single_allday_time: boolean;
-  time_24h: boolean;
+  time_24h: boolean | 'system';
   show_end_time: boolean;
   time_font_size: string;
   time_color: string;
@@ -106,6 +98,9 @@ export interface Config {
   location_font_size: string;
   location_color: string;
   location_icon_size: string;
+
+  // Weather
+  weather?: WeatherConfig;
 
   // Actions
   tap_action: ActionConfig;
@@ -130,9 +125,68 @@ export interface EntityConfig {
   blocklist?: string;
   allowlist?: string;
   split_multiday_events?: boolean;
+}
 
-  /** @deprecated Use compact_events_to_show instead. Will be removed in v3.0 */
-  max_events_to_show?: number;
+// Add these interfaces to src/config/types.ts
+
+/**
+ * Weather position-specific styling configuration
+ */
+export interface WeatherPositionConfig {
+  show_conditions?: boolean;
+  show_high_temp?: boolean;
+  show_low_temp?: boolean;
+  show_temp?: boolean;
+  icon_size?: string;
+  font_size?: string;
+  color?: string;
+}
+
+/**
+ * Weather configuration
+ */
+export interface WeatherConfig {
+  entity?: string;
+  position?: 'date' | 'event' | 'both';
+  date?: WeatherPositionConfig;
+  event?: WeatherPositionConfig;
+}
+
+/**
+ * Raw weather forecast data from Home Assistant
+ */
+export interface WeatherForecast {
+  datetime: string;
+  condition: string;
+  temperature: number;
+  templow?: number;
+  precipitation?: number;
+  precipitation_probability?: number;
+  wind_speed?: number;
+  wind_bearing?: number;
+  humidity?: number;
+}
+
+/**
+ * Processed weather data for use in templates
+ */
+export interface WeatherData {
+  icon: string;
+  condition: string;
+  temperature: string | number;
+  templow?: string | number;
+  datetime: string;
+  hour?: number;
+  precipitation?: number;
+  precipitation_probability?: number;
+}
+
+/**
+ * Weather forecasts organized by type and date/time
+ */
+export interface WeatherForecasts {
+  daily?: Record<string, WeatherData>;
+  hourly?: Record<string, WeatherData>;
 }
 
 // -----------------------------------------------------------------------------
@@ -225,9 +279,49 @@ export interface Hass {
   callService: (domain: string, service: string, serviceData?: object) => void;
   locale?: {
     language: string;
+    time_format?: string;
   };
   connection?: {
     subscribeEvents: (callback: (event: unknown) => void, eventType: string) => Promise<() => void>;
+    subscribeMessage: (
+      callback: (message: WeatherForecastMessage) => void,
+      options: SubscribeMessageOptions,
+    ) => () => void;
+  };
+  formatEntityState?: (stateObj: HassEntity, state: string) => string;
+}
+
+/**
+ * Weather forecast message structure received from Home Assistant
+ */
+export interface WeatherForecastMessage {
+  forecast: WeatherForecast[];
+  forecast_type?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Home Assistant subscribe message options
+ */
+export interface SubscribeMessageOptions {
+  type: string;
+  entity_id: string;
+  forecast_type?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Home Assistant state object type
+ */
+export interface HassEntity {
+  state: string;
+  attributes: Record<string, unknown>;
+  last_changed?: string;
+  last_updated?: string;
+  context?: {
+    id?: string;
+    parent_id?: string;
+    user_id?: string | null;
   };
 }
 
@@ -270,4 +364,7 @@ export interface Translations {
   fullDaysOfWeek: string[];
   endsToday: string;
   endsTomorrow: string;
+  editor?: {
+    [key: string]: string | string[];
+  };
 }

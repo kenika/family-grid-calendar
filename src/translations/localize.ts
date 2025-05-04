@@ -20,6 +20,7 @@ import esTranslations from './languages/es.json';
 import fiTranslations from './languages/fi.json';
 import frTranslations from './languages/fr.json';
 import heTranslations from './languages/he.json';
+import hrTranslations from './languages/hr.json';
 import huTranslations from './languages/hu.json';
 import isTranslations from './languages/is.json';
 import itTranslations from './languages/it.json';
@@ -54,6 +55,7 @@ export const TRANSLATIONS: Record<string, Types.Translations> = {
   fi: fiTranslations,
   fr: frTranslations,
   he: heTranslations,
+  hr: hrTranslations,
   hu: huTranslations,
   is: isTranslations,
   it: itTranslations,
@@ -160,23 +162,53 @@ export function getTranslations(language: string): Types.Translations {
  * Get a specific translation string from the provided language
  *
  * @param language - Language code
- * @param key - Translation key
+ * @param key - Translation key or path (supports 'editor.key' format)
  * @param fallback - Optional fallback value if translation is missing
  * @returns Translated string or array
  */
 export function translate(
   language: string,
-  key: keyof Types.Translations,
+  key: keyof Types.Translations | string,
   fallback?: string | string[],
 ): string | string[] {
   const translations = getTranslations(language);
-  // Check if the key exists in translations
+
+  // Handle editor translations which use dot notation (editor.some_key)
+  if (typeof key === 'string' && key.includes('.')) {
+    const [section, subKey] = key.split('.');
+    if (section === 'editor' && translations.editor && subKey in translations.editor) {
+      const editorValue = translations.editor[subKey];
+      // Explicitly check and return only string or string[] values
+      if (typeof editorValue === 'string' || Array.isArray(editorValue)) {
+        return editorValue;
+      }
+    }
+    // If nested path doesn't exist or is wrong type, use fallback or subKey
+    return fallback !== undefined ? fallback : subKey;
+  }
+
+  // Handle direct keys in the translations object
   if (key in translations) {
-    return translations[key];
+    const value = translations[key as keyof Types.Translations];
+    // Handle the value safely to ensure return type matches
+    if (typeof value === 'string' || Array.isArray(value)) {
+      return value;
+    }
   }
 
   // Use fallback or key name if translation is missing
-  return fallback !== undefined ? fallback : key;
+  return fallback !== undefined ? fallback : (key as string);
+}
+
+/**
+ * Check if the specified language has editor translations
+ *
+ * @param language - Language code to check
+ * @returns True if the language has editor translations
+ */
+export function hasEditorTranslations(language: string): boolean {
+  const translations = getTranslations(language);
+  return Boolean(translations?.editor && Object.keys(translations.editor).length > 0);
 }
 
 //-----------------------------------------------------------------------------
@@ -192,8 +224,8 @@ export function translate(
 export function getDateFormatStyle(language: string): 'day-dot-month' | 'month-day' | 'day-month' {
   const lang = language?.toLowerCase() || '';
 
-  // German uses day with dot, then month (e.g., "17. Mar")
-  if (lang === 'de') {
+  // German and Croatian use day with dot, then month (e.g., "17. Mar")
+  if (lang === 'de' || lang === 'hr' ) {
     return 'day-dot-month';
   }
 

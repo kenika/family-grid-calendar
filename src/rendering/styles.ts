@@ -26,7 +26,7 @@ export function generateCustomPropertiesObject(config: Types.Config): Record<str
     '--calendar-card-color-event': config.event_color,
     '--calendar-card-color-time': config.time_color,
     '--calendar-card-color-location': config.location_color,
-    '--calendar-card-line-color-vertical': config.vertical_line_color,
+    '--calendar-card-line-color-vertical': config.accent_color,
     '--calendar-card-line-width-vertical': config.vertical_line_width,
     '--calendar-card-day-spacing': config.day_spacing,
     '--calendar-card-event-spacing': config.event_spacing,
@@ -42,9 +42,9 @@ export function generateCustomPropertiesObject(config: Types.Config): Record<str
     '--calendar-card-date-column-vertical-alignment': config.date_vertical_alignment,
     '--calendar-card-event-border-radius': 'calc(var(--ha-card-border-radius, 10px) / 2)',
     '--ha-ripple-hover-opacity': '0.04',
-    '--ha-ripple-hover-color': config.vertical_line_color,
+    '--ha-ripple-hover-color': config.accent_color,
     '--ha-ripple-pressed-opacity': '0.12',
-    '--ha-ripple-pressed-color': config.vertical_line_color,
+    '--ha-ripple-pressed-color': config.accent_color,
 
     // Today indicator settings
     '--calendar-card-today-indicator-color': config.today_indicator_color,
@@ -58,8 +58,18 @@ export function generateCustomPropertiesObject(config: Types.Config): Record<str
     // Custom empty day color with opacity for default value
     '--calendar-card-empty-day-color':
       config.empty_day_color === Config.DEFAULT_CONFIG.empty_day_color
-        ? 'rgba(var(--rgb-primary-text-color, 255, 255, 255), 0.6)'
+        ? 'color-mix(in srgb, var(--primary-text-color) 60%, transparent)'
         : config.empty_day_color,
+
+    // Weather styling properties
+    '--calendar-card-weather-date-icon-size': config.weather?.date?.icon_size || '14px',
+    '--calendar-card-weather-date-font-size': config.weather?.date?.font_size || '12px',
+    '--calendar-card-weather-date-color':
+      config.weather?.date?.color || 'var(--primary-text-color)',
+    '--calendar-card-weather-event-icon-size': config.weather?.event?.icon_size || '14px',
+    '--calendar-card-weather-event-font-size': config.weather?.event?.font_size || '12px',
+    '--calendar-card-weather-event-color':
+      config.weather?.event?.color || 'var(--primary-text-color)',
   };
 
   // Optional properties
@@ -395,6 +405,31 @@ export const cardStyles = css`
     }
   }
 
+  /* Date column weather */
+  .date-column .weather {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .weather ha-icon {
+    margin-right: 1px;
+  }
+
+  .weather-temp-high,
+  .weather-temp-low {
+    line-height: 1;
+    vertical-align: middle;
+  }
+
+  .weather-temp-high {
+    font-weight: 500;
+  }
+
+  .weather-temp-low {
+    opacity: 0.8;
+  }
+
   /* ===== EVENT STYLES ===== */
 
   /* Base event */
@@ -432,6 +467,19 @@ export const cardStyles = css`
     flex-direction: column;
   }
 
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+  .summary {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .event-title {
     font-size: var(--calendar-card-font-size-event);
     font-weight: 500;
@@ -460,6 +508,18 @@ export const cardStyles = css`
     width: auto;
     vertical-align: middle;
     margin-right: 4px;
+  }
+
+  /* Event weather */
+  .event-weather {
+    display: flex;
+    font-weight: 500;
+    margin-left: 8px;
+    margin-right: 12px;
+  }
+
+  .event-weather ha-icon {
+    margin-right: 2px;
   }
 
   /* ===== TIME & LOCATION STYLES ===== */

@@ -27,9 +27,6 @@ export const DEFAULT_CONFIG: Types.Config = {
   split_multiday_events: false,
   language: undefined,
 
-  /** @deprecated Use compact_events_to_show instead. Will be removed in v3.0 */
-  max_events_to_show: undefined,
-
   // Header
   title: undefined,
   title_font_size: undefined,
@@ -37,18 +34,13 @@ export const DEFAULT_CONFIG: Types.Config = {
 
   // Layout and spacing
   background_color: 'var(--ha-card-background)',
+  accent_color: '#03a9f4',
+  vertical_line_width: '2px',
   day_spacing: '10px',
   event_spacing: '4px',
   additional_card_spacing: '0px',
   height: 'auto',
   max_height: 'none',
-  vertical_line_width: '2px',
-  vertical_line_color: '#03a9f4',
-
-  /** @deprecated Use day_separator_width instead. Will be removed in v3.0 */
-  horizontal_line_width: '0px',
-  /** @deprecated Use day_separator_color instead. Will be removed in v3.0 */
-  horizontal_line_color: 'var(--secondary-text-color)',
 
   // Week numbers and horizontal separators
   first_day_of_week: 'system',
@@ -99,7 +91,7 @@ export const DEFAULT_CONFIG: Types.Config = {
   empty_day_color: 'var(--primary-text-color)',
   show_time: true,
   show_single_allday_time: true,
-  time_24h: true,
+  time_24h: 'system',
   show_end_time: true,
   time_font_size: '12px',
   time_color: 'var(--secondary-text-color)',
@@ -109,6 +101,27 @@ export const DEFAULT_CONFIG: Types.Config = {
   location_font_size: '12px',
   location_color: 'var(--secondary-text-color)',
   location_icon_size: '14px',
+
+  // Weather
+  weather: {
+    entity: undefined,
+    position: 'date',
+    date: {
+      show_conditions: true,
+      show_high_temp: true,
+      show_low_temp: false,
+      icon_size: '14px',
+      font_size: '12px',
+      color: 'var(--primary-text-color)',
+    },
+    event: {
+      show_conditions: true,
+      show_temp: true,
+      icon_size: '14px',
+      font_size: '12px',
+      color: 'var(--primary-text-color)',
+    },
+  },
 
   // Actions
   tap_action: { action: 'none' },
@@ -140,9 +153,6 @@ export function normalizeEntities(
         blocklist?: string;
         allowlist?: string;
         split_multiday_events?: boolean;
-
-        /** @deprecated Use compact_events_to_show instead. Will be removed in v3.0 */
-        max_events_to_show?: number;
       }
   >,
 ): Array<Types.EntityConfig> {
@@ -171,7 +181,6 @@ export function normalizeEntities(
           blocklist: item.blocklist,
           allowlist: item.allowlist,
           split_multiday_events: item.split_multiday_events,
-          max_events_to_show: item.max_events_to_show,
         };
       }
       return null;

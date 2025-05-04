@@ -22,6 +22,7 @@ import 'dayjs/locale/es';
 import 'dayjs/locale/fi';
 import 'dayjs/locale/fr';
 import 'dayjs/locale/he';
+import 'dayjs/locale/hr';
 import 'dayjs/locale/hu';
 import 'dayjs/locale/is';
 import 'dayjs/locale/it';
@@ -77,6 +78,7 @@ function mapLocale(locale: string): string {
     'fi',
     'fr',
     'he',
+    'hr',
     'hu',
     'is',
     'it',

@@ -17,6 +17,7 @@ import * as Localize from '../translations/localize';
 import * as FormatUtils from '../utils/format';
 import * as EventUtils from '../utils/events';
 import * as Helpers from '../utils/helpers';
+import * as Weather from '../utils/weather';
 
 //-----------------------------------------------------------------------------
 // MAIN CARD STRUCTURE RENDERING
@@ -469,6 +470,7 @@ function renderDateColumn(
   config: Types.Config,
   language: string,
   isToday: boolean,
+  weatherForecasts?: Types.WeatherForecasts,
 ): TemplateResult {
   const isWeekendDay = date.getDay() === 0 || date.getDay() === 6;
 
@@ -498,6 +500,49 @@ function renderDateColumn(
   const weekday = translations.daysOfWeek[date.getDay()];
   const day = date.getDate();
   const month = translations.months[date.getMonth()];
+
+  // Add weather if configured
+  const showDateWeather =
+    (config.weather?.position === 'date' || config.weather?.position === 'both') &&
+    config.weather?.entity;
+
+  let weatherContent: TemplateResult | typeof nothing = nothing;
+
+  if (showDateWeather && weatherForecasts?.daily) {
+    const dailyForecast = Weather.findDailyForecast(date, weatherForecasts.daily);
+
+    if (dailyForecast) {
+      // Get options from date-specific config
+      const dateConfig = config.weather?.date || {};
+      const showConditions = dateConfig.show_conditions !== false;
+      const showHighTemp = dateConfig.show_high_temp !== false;
+      const showLowTemp = dateConfig.show_low_temp === true && dailyForecast.templow;
+
+      // Get styling from config
+      const iconSize = dateConfig.icon_size || '14px';
+      const fontSize = dateConfig.font_size || '12px';
+      const color = dateConfig.color || 'var(--primary-text-color)';
+
+      weatherContent = html`
+        <div class="weather" style="font-size: ${fontSize}; color: ${color};">
+          ${showConditions
+            ? html`
+                <ha-icon
+                  .icon=${dailyForecast.icon}
+                  style="--mdc-icon-size: ${iconSize};"
+                ></ha-icon>
+              `
+            : nothing}
+          ${showHighTemp
+            ? html` <span class="weather-temp-high">${dailyForecast.temperature}°</span> `
+            : nothing}
+          ${showLowTemp
+            ? html` <span class="weather-temp-low">/${dailyForecast.templow}°</span> `
+            : nothing}
+        </div>
+      `;
+    }
+  }
 
   return html`
     <div
@@ -531,6 +576,7 @@ function renderDateColumn(
           </div>
         `
       : nothing}
+    ${weatherContent}
   `;
 }
 
@@ -550,6 +596,8 @@ export function renderDay(
   language: string,
   prevDay?: Types.EventsByDay,
   boundaryInfo?: { isNewWeek: boolean; isNewMonth: boolean },
+  weatherForecasts?: Types.WeatherForecasts,
+  hass?: Types.Hass | null,
 ): TemplateResult {
   // Check if this day is today
   const now = new Date();
@@ -560,25 +608,24 @@ export function renderDay(
   // Separator precedence hierarchy (highest to lowest):
   // 1. Month boundaries (with month separator enabled)
   // 2. Week boundaries (with week separator or week numbers enabled)
-  // 3. Regular day boundaries (with regular horizontal line enabled)
+  // 3. Regular day boundaries (with regular day separator enabled)
   // Only render the highest precedence separator that applies
 
   let daySeparator: TemplateResult | typeof nothing = nothing;
 
-  // Only add a regular horizontal line separator between days IF:
+  // Only add a regular day separator between days IF:
   // 1. This is not the first day displayed (prevDay exists)
   // 2. This is not a month boundary with month separators enabled
   // 3. This is not a week boundary with week separators or week numbers enabled
-  // 4. Horizontal line width is not zero
+  // 4. Day separator width is not zero
   const isMonthBoundary = boundaryInfo?.isNewMonth || false;
   const isWeekBoundary = boundaryInfo?.isNewWeek || false;
   const hasMonthSeparator = isMonthBoundary && config.month_separator_width !== '0px';
   const hasWeekSeparator =
     isWeekBoundary && (config.show_week_numbers !== null || config.week_separator_width !== '0px');
 
-  // Use day_separator_width with fallback to horizontal_line_width
-  const daySeparatorWidth = config.day_separator_width || config.horizontal_line_width;
-  const daySeparatorColor = config.day_separator_color || config.horizontal_line_color;
+  const daySeparatorWidth = config.day_separator_width;
+  const daySeparatorColor = config.day_separator_color;
 
   if (prevDay && daySeparatorWidth !== '0px' && !hasMonthSeparator && !hasWeekSeparator) {
     const separatorStyle = createSeparatorStyle(
@@ -597,7 +644,8 @@ export function renderDay(
       ${repeat(
         day.events,
         (event, index) => `${event._entityId}-${event.summary}-${index}`,
-        (event, index) => renderEvent(event, day, index, config, language, isToday),
+        (event, index) =>
+          renderEvent(event, day, index, config, language, isToday, weatherForecasts, hass),
       )}
     </table>
   `;
@@ -611,6 +659,8 @@ export function renderGroupedEvents(
   days: Types.EventsByDay[],
   config: Types.Config,
   language: string,
+  weatherForecasts?: Types.WeatherForecasts,
+  hass?: Types.Hass | null,
 ): TemplateResult {
   return html`
     ${days.map((day, index) => {
@@ -669,7 +719,10 @@ export function renderGroupedEvents(
         }
       }
 
-      return html` ${separator} ${renderDay(day, config, language, prevDay, boundaryInfo)} `;
+      return html`
+        ${separator}
+        ${renderDay(day, config, language, prevDay, boundaryInfo, weatherForecasts, hass)}
+      `;
     })}
   `;
 }
@@ -691,6 +744,8 @@ export function renderEvent(
   config: Types.Config,
   language: string,
   isToday: boolean,
+  weatherForecasts?: Types.WeatherForecasts,
+  hass?: Types.Hass | null,
 ): TemplateResult {
   // Add CSS class for empty days
   const isEmptyDay = Boolean(event._isEmptyDay);
@@ -735,11 +790,6 @@ export function renderEvent(
       isPastEvent = endDateTime !== null && now > endDateTime;
     }
   }
-
-  // Get colors from config based on entity ID and matched config
-  const entityColor = isEmptyDay
-    ? 'var(--calendar-card-empty-day-color)'
-    : EventUtils.getEntityColor(event._entityId, config, event);
 
   // Get line color (solid) and background color (with opacity)
   const entityAccentColor = EventUtils.getEntityAccentColorWithOpacity(
@@ -802,7 +852,7 @@ export function renderEvent(
     isRunning && config.show_progress_bar ? EventUtils.calculateEventProgress(event) : null;
 
   // Format event time and location
-  const eventTime = FormatUtils.formatEventTime(event, config, language);
+  const eventTime = FormatUtils.formatEventTime(event, config, language, hass);
   const eventLocation =
     event.location && showLocation
       ? FormatUtils.formatLocation(event.location, config.remove_location_country)
@@ -831,7 +881,7 @@ export function renderEvent(
               rowspan="${day.events.length}"
               style="position: relative;"
             >
-              ${renderDateColumn(dayDate, config, language, isToday)}
+              ${renderDateColumn(dayDate, config, language, isToday, weatherForecasts)}
               ${renderTodayIndicator(config, isToday)}
             </td>
           `
@@ -841,14 +891,7 @@ export function renderEvent(
         style="border-left: var(--calendar-card-line-width-vertical) solid ${entityAccentColor}; background-color: ${entityAccentBackgroundColor};"
       >
         <div class="event-content">
-          <div
-            class="event-title ${isEmptyDay ? 'empty-day-title' : ''}"
-            style="color: ${entityColor}"
-          >
-            ${EventUtils.getEntityLabel(event._entityId, config, event)
-              ? renderLabel(EventUtils.getEntityLabel(event._entityId, config, event))
-              : ''}${isEmptyDay ? `✓ ${event.summary}` : event.summary}
-          </div>
+          ${renderEventTitle(event, config, weatherForecasts)}
           <div class="time-location">
             ${shouldShowTime
               ? html`
@@ -903,5 +946,100 @@ export function renderEvent(
         </div>
       </td>
     </tr>
+  `;
+}
+
+/**
+ * Render an event title with optional label and weather data
+ */
+export function renderEventTitle(
+  event: Types.CalendarEventData,
+  config: Types.Config,
+  weatherForecasts?: Types.WeatherForecasts,
+): TemplateResult {
+  const isEmptyDay = !!event._isEmptyDay;
+  const entityColor = isEmptyDay
+    ? 'var(--calendar-card-empty-day-color)'
+    : event._matchedConfig?.color || config.event_color;
+
+  return html`
+    <div class="summary-row">
+      <div class="summary">
+        ${EventUtils.getEntityLabel(event._entityId, config, event)
+          ? renderLabel(EventUtils.getEntityLabel(event._entityId, config, event))
+          : ''}
+        <span
+          class="event-title ${isEmptyDay ? 'empty-day-title' : ''}"
+          style="color: ${entityColor}"
+        >
+          ${isEmptyDay ? `✓ ${event.summary}` : event.summary}
+        </span>
+      </div>
+      ${renderEventWeather(event, config, weatherForecasts)}
+    </div>
+  `;
+}
+
+/**
+ * Render weather information for an event
+ */
+function renderEventWeather(
+  event: Types.CalendarEventData,
+  config: Types.Config,
+  weatherForecasts?: Types.WeatherForecasts,
+): TemplateResult {
+  // Only render if weather is enabled for events
+  const showEventWeather =
+    config.weather?.entity &&
+    (config.weather.position === 'event' || config.weather.position === 'both');
+
+  if (!showEventWeather || !weatherForecasts?.hourly) {
+    return html``;
+  }
+
+  // Check if this is a timed event (has dateTime) that has ended
+  if (event.end?.dateTime) {
+    const now = new Date();
+    const eventEndTime = new Date(event.end.dateTime);
+
+    // If event has ended, don't show weather
+    if (eventEndTime < now) {
+      return html``;
+    }
+  }
+
+  // Find the appropriate forecast - pass both hourly and daily forecasts
+  const forecast = Weather.findForecastForEvent(
+    event,
+    weatherForecasts.hourly,
+    weatherForecasts.daily,
+  );
+
+  if (!forecast) {
+    return html``;
+  }
+
+  // Get options from event-specific config
+  const eventConfig = config.weather?.event || {};
+  const showConditions = eventConfig.show_conditions !== false;
+  const showTemp = eventConfig.show_temp !== false;
+
+  // Get styling from config
+  const iconSize = eventConfig.icon_size || '14px';
+  const fontSize = eventConfig.font_size || '12px';
+  const color = eventConfig.color || 'var(--secondary-text-color)';
+
+  // Render weather with position-specific options
+  return html`
+    <div class="event-weather">
+      ${showConditions
+        ? html`<ha-icon .icon=${forecast.icon} style="--mdc-icon-size: ${iconSize};"></ha-icon>`
+        : nothing}
+      ${showTemp
+        ? html`<span style="font-size: ${fontSize}; color: ${color};">
+            ${forecast.temperature}°
+          </span>`
+        : nothing}
+    </div>
   `;
 }
