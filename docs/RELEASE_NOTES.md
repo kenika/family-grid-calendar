@@ -1,3 +1,16 @@
+# Calendar Card Pro v3.0.2
+
+**Configuration and editor bugfixes.** This release addresses issues with configuration handling discovered after the v3.0.0 release.
+
+## 🐛 Bug Fixes
+
+- **Fixed configuration filtering for weather settings** - Resolved UI synchronization issues by preserving the complete weather configuration structure even when values match defaults, preventing toggle switches and selectors from becoming out of sync
+- **Fixed all-day event weather display** - Ensured daily weather forecasts are properly fetched and displayed for all-day events when weather position is set to "event"
+
+**Full Changelog**: https://github.com/alexpfau/calendar-card-pro/compare/v3.0.1...v3.0.2
+
+---
+
 # Calendar Card Pro v3.0.1
 
 **Configuration and editor bugfixes.** This release addresses issues with configuration handling discovered after the v3.0.0 release.
