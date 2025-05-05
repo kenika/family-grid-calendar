@@ -17,45 +17,50 @@
  * @returns RGBA color string
  */
 export function convertToRGBA(color: string, opacity: number): string {
-  // If color is a CSS variable, we need to handle it specially
+  // Handle theme variables
   if (color.startsWith('var(')) {
-    // Create a temporary CSS variable with opacity
-    return `rgba(var(--calendar-color-rgb, 3, 169, 244), ${opacity / 100})`;
+    return `var(--calendar-card-color-with-opacity, ${color.replace(')', `, ${opacity / 100})`)}`;
   }
 
-  if (color === 'transparent') {
-    return color;
+  // Calculate opacity value (0-1 scale)
+  const alpha = opacity / 100;
+
+  // Handle known color formats
+
+  // Already RGBA format
+  if (color.startsWith('rgba(')) {
+    return color.replace(/rgba\(([^,]+),([^,]+),([^,]+),[^)]+\)/, `rgba($1,$2,$3,${alpha})`);
   }
 
-  // Create temporary element to compute the color
-  const tempElement = document.createElement('div');
-  tempElement.style.display = 'none';
-  tempElement.style.color = color;
-  document.body.appendChild(tempElement);
-
-  // Get computed color in RGB format
-  const computedColor = getComputedStyle(tempElement).color;
-  document.body.removeChild(tempElement);
-
-  // If computation failed, return original color
-  if (!computedColor) return color;
-
-  // Handle RGB format (rgb(r, g, b))
-  const rgbMatch = computedColor.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
-  if (rgbMatch) {
-    const [, r, g, b] = rgbMatch;
-    return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`;
+  // RGB format
+  if (color.startsWith('rgb(')) {
+    return color.replace('rgb(', 'rgba(').replace(')', `, ${alpha})`);
   }
 
-  // If already RGBA, replace the alpha component
-  const rgbaMatch = computedColor.match(/^rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)$/);
-  if (rgbaMatch) {
-    const [, r, g, b] = rgbaMatch;
-    return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`;
+  // Hex format (#RGB or #RRGGBB)
+  if (color.startsWith('#')) {
+    let r = 0,
+      g = 0,
+      b = 0;
+
+    // Handle shorthand hex (#RGB)
+    if (color.length === 4) {
+      r = parseInt(color[1] + color[1], 16);
+      g = parseInt(color[2] + color[2], 16);
+      b = parseInt(color[3] + color[3], 16);
+    }
+    // Standard hex (#RRGGBB)
+    else if (color.length === 7) {
+      r = parseInt(color.substring(1, 3), 16);
+      g = parseInt(color.substring(3, 5), 16);
+      b = parseInt(color.substring(5, 7), 16);
+    }
+
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
 
-  // Fallback to original color if parsing fails
-  return color;
+  // Named colors and other formats - use a semi-transparent version
+  return `${color}${opacity < 100 ? (opacity < 10 ? '0' : '') : ''}${opacity}`;
 }
 
 //-----------------------------------------------------------------------------
@@ -81,36 +86,50 @@ export function isEmoji(str: string): boolean {
  * @returns Type of indicator ('dot', 'pulse', 'glow', 'mdi', 'image', 'emoji', 'none')
  */
 export function getTodayIndicatorType(value: string | boolean): string {
-  // Boolean values
-  if (value === false) return 'none';
-  if (value === true) return 'dot';
+  // Handle boolean/undefined cases
+  if (value === undefined || value === false) {
+    return 'none';
+  }
 
-  // String values
+  if (value === true) {
+    return 'dot';
+  }
+
+  // Handle string values
   if (typeof value === 'string') {
-    // Check for built-in types
-    if (value === 'dot') return 'dot';
-    if (value === 'pulse') return 'pulse';
-    if (value === 'glow') return 'glow';
+    // Check for special values
+    if (value === 'pulse' || value === 'glow') {
+      return value;
+    }
 
-    // Check if value is an MDI icon path
-    if (value.startsWith('mdi:')) return 'mdi';
+    // Check for MDI icon format
+    if (value.startsWith('mdi:')) {
+      return 'mdi';
+    }
 
-    // Check if value is an image path
-    if (value.startsWith('/') || /\.(jpg|jpeg|png|gif|svg|webp)$/i.test(value)) return 'image';
+    // Check for image path
+    if (
+      value.startsWith('/') ||
+      value.includes('.png') ||
+      value.includes('.jpg') ||
+      value.includes('.svg') ||
+      value.includes('.webp') ||
+      value.includes('.gif')
+    ) {
+      return 'image';
+    }
 
-    // Use Unicode property escapes to match any emoji character in the string.
-    // This regex will match a wide range of emoji code points, including single and multi-codepoint emojis.
-    // It is supported in all modern browsers (ES2018+), but may not match every possible emoji sequence (e.g., some flags or ZWJ sequences).
-    const emojiRegex = /\p{Emoji}/u;
+    // Check if it's an emoji (this is an approximation)
+    // More sophisticated emoji detection could be added if needed
+    const emojiRegex = /[\p{Emoji}]/u;
     if (emojiRegex.test(value)) {
       return 'emoji';
     }
 
-    // Default to dot if unrecognized
+    // Default to dot for other strings
     return 'dot';
   }
 
-  // Default to none for unexpected types
   return 'none';
 }
 
@@ -350,4 +369,68 @@ function formatDateAsYYYYMMDD(date: Date): string {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+/**
+ * Filter out default values from configuration
+ * This helps avoid bloated YAML configuration by removing unnecessary properties
+ *
+ * @param config User configuration to filter
+ * @param defaultConfig Default configuration to compare against
+ * @returns Filtered configuration without default values
+ */
+export function filterDefaultValues(config: any, defaultConfig: any): any {
+  // Skip filtering if config is not an object
+  if (!config || typeof config !== 'object' || Array.isArray(config)) {
+    return config;
+  }
+
+  // Make a copy of the config to avoid mutating the original
+  const result: any = Array.isArray(config) ? [] : {};
+
+  // Process each property in the config
+  for (const [key, value] of Object.entries(config)) {
+    // Skip undefined values
+    if (value === undefined) {
+      continue;
+    }
+
+    // Special handling for show_week_numbers to allow null value through
+    if (key === 'show_week_numbers' && (value === null || value === '')) {
+      continue; // Filter out both null and empty string values for show_week_numbers
+    }
+
+    // Special handling for entity arrays
+    if (key === 'entities' && Array.isArray(value)) {
+      result[key] = value;
+      continue;
+    }
+
+    // Check if this is a default value
+    const isDefaultValue = defaultConfig && key in defaultConfig && defaultConfig[key] === value;
+
+    if (!isDefaultValue) {
+      // For nested objects, recursively filter
+      if (
+        value !== null &&
+        typeof value === 'object' &&
+        !Array.isArray(value) &&
+        defaultConfig &&
+        typeof defaultConfig[key] === 'object' &&
+        !Array.isArray(defaultConfig[key])
+      ) {
+        const nestedResult = filterDefaultValues(value, defaultConfig[key]);
+
+        // Only add the nested object if it has properties
+        if (Object.keys(nestedResult).length > 0) {
+          result[key] = nestedResult;
+        }
+      } else {
+        // Otherwise add the value directly
+        result[key] = value;
+      }
+    }
+  }
+
+  return result;
 }
