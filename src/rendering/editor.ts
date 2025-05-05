@@ -253,7 +253,10 @@ export class CalendarCardProEditor extends LitElement {
    */
   private _fireConfigChanged(config: Types.Config): void {
     // Filter out default values to minimize YAML bloat
-    const minimalConfig = Helpers.filterDefaultValues(config, Config.DEFAULT_CONFIG);
+    const minimalConfig = Helpers.filterDefaultValues(
+      config as unknown as Record<string, unknown>,
+      Config.DEFAULT_CONFIG as unknown as Record<string, unknown>,
+    );
 
     // Update internal config for UI rendering (keep full config)
     this._config = config;

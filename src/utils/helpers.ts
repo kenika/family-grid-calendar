@@ -379,14 +379,19 @@ function formatDateAsYYYYMMDD(date: Date): string {
  * @param defaultConfig Default configuration to compare against
  * @returns Filtered configuration without default values
  */
-export function filterDefaultValues(config: any, defaultConfig: any): any {
+export function filterDefaultValues(
+  config: Record<string, unknown>,
+  defaultConfig: Record<string, unknown>,
+): Record<string, unknown> {
   // Skip filtering if config is not an object
   if (!config || typeof config !== 'object' || Array.isArray(config)) {
     return config;
   }
 
   // Make a copy of the config to avoid mutating the original
-  const result: any = Array.isArray(config) ? [] : {};
+  const result = Array.isArray(config)
+    ? ([] as unknown as Record<string, unknown>)
+    : ({} as Record<string, unknown>);
 
   // Process each property in the config
   for (const [key, value] of Object.entries(config)) {
@@ -419,7 +424,10 @@ export function filterDefaultValues(config: any, defaultConfig: any): any {
         typeof defaultConfig[key] === 'object' &&
         !Array.isArray(defaultConfig[key])
       ) {
-        const nestedResult = filterDefaultValues(value, defaultConfig[key]);
+        const nestedResult = filterDefaultValues(
+          value as Record<string, unknown>,
+          defaultConfig[key] as Record<string, unknown>,
+        );
 
         // Only add the nested object if it has properties
         if (Object.keys(nestedResult).length > 0) {
