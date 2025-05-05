@@ -225,7 +225,7 @@ export function getDateFormatStyle(language: string): 'day-dot-month' | 'month-d
   const lang = language?.toLowerCase() || '';
 
   // German and Croatian use day with dot, then month (e.g., "17. Mar")
-  if (lang === 'de' || lang === 'hr' ) {
+  if (lang === 'de' || lang === 'hr') {
     return 'day-dot-month';
   }
 

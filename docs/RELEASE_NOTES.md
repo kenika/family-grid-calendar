@@ -1,3 +1,22 @@
+# Calendar Card Pro v3.0.1
+
+**Configuration and editor bugfixes.** This release addresses issues with configuration handling discovered after the v3.0.0 release.
+
+## 🐛 Bug Fixes
+
+- **Fixed configuration bloat** by properly handling default values and empty strings
+- **Fixed week numbers unexpectedly showing** when they shouldn't be enabled
+- **Fixed UI-only fields** being incorrectly saved to user configurations
+- **Improved code documentation** for special cases in the editor
+
+## Related Issues
+
+- [#209](https://github.com/alexpfau/calendar-card-pro/issues/209) - Week separator requires week number by @LiquidPT
+
+**Full Changelog**: https://github.com/alexpfau/calendar-card-pro/compare/v3.0.0...v3.0.1
+
+---
+
 # Calendar Card Pro v3.0.0
 
 **Visual configuration meets weather integration.** This major release transforms how you interact with and view calendar information, combining intuitive visual configuration with powerful weather forecasts—making your calendar both easier to set up and more contextually informative than ever before.

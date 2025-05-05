@@ -252,8 +252,17 @@ export class CalendarCardProEditor extends LitElement {
    * @param config The updated config
    */
   private _fireConfigChanged(config: Types.Config): void {
+    // Filter out default values to minimize YAML bloat
+    const minimalConfig = Helpers.filterDefaultValues(
+      config as unknown as Record<string, unknown>,
+      Config.DEFAULT_CONFIG as unknown as Record<string, unknown>,
+    );
+
+    // Update internal config for UI rendering (keep full config)
     this._config = config;
-    this.dispatchEvent(new CustomEvent('config-changed', { detail: { config } }));
+
+    // Send only non-default values to Home Assistant
+    this.dispatchEvent(new CustomEvent('config-changed', { detail: { config: minimalConfig } }));
   }
 
   /**
@@ -365,12 +374,15 @@ export class CalendarCardProEditor extends LitElement {
     const target = event.target as HTMLInputElement | HTMLSelectElement;
     const name = target.getAttribute('name');
 
+    let value: string | boolean | number | null = target.value;
+
     if (!name) return;
 
-    // Handle special cases for mode selectors
+    // Handle special cases for UI controls that require custom processing
     if (name === 'language_mode') {
       const mode = target.value;
 
+      // UI-only field that controls the real 'language' config parameter
       if (mode === 'system') {
         // Remove language setting when using system default
         this.setConfigValue('language', undefined);
@@ -380,10 +392,11 @@ export class CalendarCardProEditor extends LitElement {
           this.setConfigValue('language', 'en');
         }
       }
-      return;
+      return; // Don't save the UI mode itself to config
     } else if (name === 'height_mode') {
       const mode = target.value;
 
+      // UI-only selector that manages two real config params: height and max_height
       // Save the current height/max_height values before clearing them
       const currentHeight = this.getConfigValue('height');
       const currentMaxHeight = this.getConfigValue('max_height');
@@ -405,17 +418,25 @@ export class CalendarCardProEditor extends LitElement {
           currentMaxHeight && currentMaxHeight !== 'none' ? currentMaxHeight : '300px',
         );
       }
-      return;
+      return; // Don't save the UI mode itself to config
     } else if (name === 'start_date_mode') {
+      // UI-only field that controls the 'start_date' parameter
       this._handleStartDateModeChange(target.value);
-      return;
+      return; // Don't save the UI mode itself to config
     } else if (name === 'start_date_fixed' || name === 'start_date_offset') {
+      // These are UI-only fields that map to the single 'start_date' parameter
       this.setConfigValue('start_date', target.value);
       this.requestUpdate();
-      return;
+      return; // Don't save these UI fields to config
+    } else if (name === 'remove_location_country_selector') {
+      // UI-only field that controls the 'remove_location_country' parameter
+      // The actual value is set by the custom change handler in the select field
+      return; // Don't save this UI-only field to config
+    } else if (name === 'show_week_numbers' && value === 'null') {
+      // Special handling for show_week_numbers to convert 'null' string to actual null
+      // This ensures the default option is properly stored as null rather than a string
+      value = null;
     }
-
-    let value: string | boolean | number = target.value;
 
     // Handle switch/checkbox values
     if (target.tagName === 'HA-SWITCH') {
@@ -891,6 +912,7 @@ export class CalendarCardProEditor extends LitElement {
                   this.setConfigValue('day_separator_width', '0px');
                 }
               },
+              true, // UI-only
             )}
             ${(() => {
               // Only show width and color fields if separator is enabled (width is not 0px)
@@ -934,6 +956,7 @@ export class CalendarCardProEditor extends LitElement {
                   this.setConfigValue('week_separator_width', '0px');
                 }
               },
+              true, // UI-only
             )}
             ${(() => {
               // Only show width and color fields if separator is enabled (width is not 0px)
@@ -977,6 +1000,7 @@ export class CalendarCardProEditor extends LitElement {
                   this.setConfigValue('month_separator_width', '0px');
                 }
               },
+              true, // UI-only
             )}
             ${(() => {
               // Only show width and color fields if separator is enabled (width is not 0px)
@@ -1343,6 +1367,7 @@ export class CalendarCardProEditor extends LitElement {
    * @param label Field label
    * @param defaultValue Default value
    * @param changeCallback Optional callback for change events
+   * @param uiOnly When true, the field won't be saved to config (UI control only)
    * @returns Lit template for the boolean field
    */
   addBooleanField(
@@ -1350,6 +1375,7 @@ export class CalendarCardProEditor extends LitElement {
     label?: string,
     defaultValue?: boolean,
     changeCallback?: (event: Event) => void,
+    uiOnly: boolean = false,
   ): TemplateResult {
     return html`
       <ha-formfield label="${label ?? this._getTranslation(name)}">
@@ -1357,7 +1383,9 @@ export class CalendarCardProEditor extends LitElement {
           name="${name}"
           .checked="${this.getConfigValue(name, defaultValue)}"
           @change="${(event: Event) => {
-            this._valueChanged(event);
+            // Only call _valueChanged if this is not a UI-only field
+            if (!uiOnly) this._valueChanged(event);
+            // Always call the callback if provided
             if (changeCallback) changeCallback(event);
           }}"
         ></ha-switch>
