@@ -34,9 +34,9 @@ export function getRequiredForecastTypes(
     return ['daily'];
   }
 
-  // Event position only needs hourly forecasts
+  // Event position needs both hourly (for timed events) and daily (for all-day events)
   if (position === 'event') {
-    return ['hourly'];
+    return ['daily', 'hourly'];
   }
 
   // Both positions need both forecast types

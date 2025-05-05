@@ -411,6 +411,13 @@ export function filterDefaultValues(
       continue;
     }
 
+    // Special handling for weather config - preserve entire structure once defined
+    if (key === 'weather' && typeof value === 'object' && value !== null) {
+      // Deep clone the weather config to preserve the full structure
+      result[key] = structuredClone ? structuredClone(value) : JSON.parse(JSON.stringify(value));
+      continue;
+    }
+
     // Check if this is a default value
     const isDefaultValue = defaultConfig && key in defaultConfig && defaultConfig[key] === value;
 
