@@ -1356,7 +1356,10 @@ export class CalendarCardProEditor extends LitElement {
         label="${label ?? this._getTranslation(name)}"
         .value="${this.getConfigValue(name, defaultValue)}"
         .includeDomains="${includeDomains}"
-        @change="${this._valueChanged}"
+        @value-changed="${(e: CustomEvent) => {
+          e.stopPropagation();
+          this.setConfigValue(name, e.detail.value);
+        }}"
       ></ha-entity-picker>
     `;
   }
