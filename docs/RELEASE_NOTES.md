@@ -1,3 +1,21 @@
+# Calendar Card Pro v3.0.3
+
+**Editor functionality and documentation fixes.** This release addresses issues with the visual editor and clarifies documentation for filtering options.
+
+## 🐛 Bug Fixes
+
+- **Fixed entity picker selection in editor** - Resolved an issue where in rare cases calendar and weather entity selections wouldn't register in the dropdown, preventing users from selecting or changing weather entities through the UI
+- **Clarified blocklist/allowlist documentation** - Updated field descriptions to correctly specify pipe separator (|) rather than commas, matching the actual implementation
+
+## Related Issues
+
+- [#214](https://github.com/alexpfau/calendar-card-pro/issues/214) - Entity picker selection doesn't register in editor by @mhoogenbosch and @dives11
+- [#216](https://github.com/alexpfau/calendar-card-pro/issues/216) - Incorrect blocklist/allowlist format documentation by @Kuddelsoft
+
+**Full Changelog**: https://github.com/alexpfau/calendar-card-pro/compare/v3.0.2...v3.0.3
+
+---
+
 # Calendar Card Pro v3.0.2
 
 **Configuration and editor bugfixes.** This release addresses issues with configuration handling discovered after the v3.0.0 release.
