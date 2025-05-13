@@ -17,50 +17,45 @@
  * @returns RGBA color string
  */
 export function convertToRGBA(color: string, opacity: number): string {
-  // Handle theme variables
+  // If color is a CSS variable, we need to handle it specially
   if (color.startsWith('var(')) {
-    return `var(--calendar-card-color-with-opacity, ${color.replace(')', `, ${opacity / 100})`)}`;
+    // Create a temporary CSS variable with opacity
+    return `rgba(var(--calendar-color-rgb, 3, 169, 244), ${opacity / 100})`;
   }
 
-  // Calculate opacity value (0-1 scale)
-  const alpha = opacity / 100;
-
-  // Handle known color formats
-
-  // Already RGBA format
-  if (color.startsWith('rgba(')) {
-    return color.replace(/rgba\(([^,]+),([^,]+),([^,]+),[^)]+\)/, `rgba($1,$2,$3,${alpha})`);
+  if (color === 'transparent') {
+    return color;
   }
 
-  // RGB format
-  if (color.startsWith('rgb(')) {
-    return color.replace('rgb(', 'rgba(').replace(')', `, ${alpha})`);
+  // Create temporary element to compute the color
+  const tempElement = document.createElement('div');
+  tempElement.style.display = 'none';
+  tempElement.style.color = color;
+  document.body.appendChild(tempElement);
+
+  // Get computed color in RGB format
+  const computedColor = getComputedStyle(tempElement).color;
+  document.body.removeChild(tempElement);
+
+  // If computation failed, return original color
+  if (!computedColor) return color;
+
+  // Handle RGB format (rgb(r, g, b))
+  const rgbMatch = computedColor.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+  if (rgbMatch) {
+    const [, r, g, b] = rgbMatch;
+    return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`;
   }
 
-  // Hex format (#RGB or #RRGGBB)
-  if (color.startsWith('#')) {
-    let r = 0,
-      g = 0,
-      b = 0;
-
-    // Handle shorthand hex (#RGB)
-    if (color.length === 4) {
-      r = parseInt(color[1] + color[1], 16);
-      g = parseInt(color[2] + color[2], 16);
-      b = parseInt(color[3] + color[3], 16);
-    }
-    // Standard hex (#RRGGBB)
-    else if (color.length === 7) {
-      r = parseInt(color.substring(1, 3), 16);
-      g = parseInt(color.substring(3, 5), 16);
-      b = parseInt(color.substring(5, 7), 16);
-    }
-
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  // If already RGBA, replace the alpha component
+  const rgbaMatch = computedColor.match(/^rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)$/);
+  if (rgbaMatch) {
+    const [, r, g, b] = rgbaMatch;
+    return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`;
   }
 
-  // Named colors and other formats - use a semi-transparent version
-  return `${color}${opacity < 100 ? (opacity < 10 ? '0' : '') : ''}${opacity}`;
+  // Fallback to original color if parsing fails
+  return color;
 }
 
 //-----------------------------------------------------------------------------
