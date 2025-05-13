@@ -1,3 +1,17 @@
+# Calendar Card Pro v3.0.4
+
+## 🐛 Bug Fixes
+
+- **Fixed accent color backgrounds** - Resolved an issue where event background colors wouldn't display properly when using named colors like "blue" in the accent_color setting (RGB and hex values were unaffected)
+
+## Related Issues
+
+- [#219](https://github.com/alexpfau/calendar-card-pro/issues/219) - Shaded Accent Backgrounds fail after 3.0.x by @dml105
+
+**Full Changelog**: https://github.com/alexpfau/calendar-card-pro/compare/v3.0.3...v3.0.4
+
+---
+
 # Calendar Card Pro v3.0.3
 
 **Editor functionality and documentation fixes.** This release addresses issues with the visual editor and clarifies documentation for filtering options.
