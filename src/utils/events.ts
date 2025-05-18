@@ -321,65 +321,49 @@ export function groupEventsByDay(
   // Apply entity-specific event limits first (pre-filtering)
   // This happens before the global compact_events_to_show limit is applied
   if (!isExpanded) {
-    // Create a map to track how many events we've seen from each entity
-    const entityEventCounts = new Map<string, number>();
+    // Use a map with a unique key per entity config (entityId + config index)
+    const entityConfigEventCounts = new Map<string, number>();
 
-    // Process each day
     for (const day of days) {
-      // Create a new array to hold the filtered events for this day
       const filteredEvents: Types.CalendarEventData[] = [];
-
-      // Process each event in the day
       for (const event of day.events) {
-        // Skip empty day placeholders - always include these
         if (event._isEmptyDay) {
           filteredEvents.push(event);
           continue;
         }
-
-        // Get the entity ID for this event
+        // Use both entityId and config index for uniqueness
         const entityId = event._entityId;
-        if (!entityId) {
-          // If no entity ID (shouldn't happen), include the event
-          filteredEvents.push(event);
-          continue;
+        const matchedConfig = event._matchedConfig;
+        // Find the config index for this matchedConfig
+        let configIdx = -1;
+        if (matchedConfig) {
+          configIdx = config.entities.findIndex(
+            (e) => typeof e === 'object' && e === matchedConfig,
+          );
+        } else if (entityId) {
+          configIdx = config.entities.findIndex((e) => typeof e === 'string' && e === entityId);
         }
-
-        // Find the entity config for this event's source
-        const entityConfig = config.entities.find((e) =>
-          typeof e === 'string' ? e === entityId : e.entity === entityId,
-        );
-
-        // Skip if no config found (shouldn't happen)
-        if (!entityConfig) {
-          filteredEvents.push(event);
-          continue;
-        }
-
+        const configKey = configIdx !== -1 ? `${entityId}__${configIdx}` : entityId || '';
         // Get entity-specific compact_events_to_show (if set)
-        const entityMaxEvents =
-          typeof entityConfig === 'object' ? entityConfig.compact_events_to_show : undefined;
-
-        // If no entity-specific limit, include the event
+        const entityMaxEvents = matchedConfig?.compact_events_to_show;
         if (entityMaxEvents === undefined) {
           filteredEvents.push(event);
           continue;
         }
-
-        // Get current count for this entity
-        const currentCount = entityEventCounts.get(entityId) || 0;
-
-        // Check if we've reached the limit for this entity
+        const currentCount = entityConfigEventCounts.get(configKey) || 0;
         if (currentCount < entityMaxEvents) {
-          // Include the event and increment the counter
           filteredEvents.push(event);
-          entityEventCounts.set(entityId, currentCount + 1);
+          entityConfigEventCounts.set(configKey, currentCount + 1);
         }
-        // If we've hit the limit, skip this event
+        // If limit reached, skip
       }
-
-      // Replace the day's events with our filtered list
       day.events = filteredEvents;
+    }
+    // Filter out days with no visible events unless show_empty_days is true
+    if (!config.show_empty_days) {
+      days = days.filter(
+        (day) => day.events.length > 0 && !(day.events.length === 1 && day.events[0]._isEmptyDay),
+      );
     }
   }
 
@@ -610,61 +594,37 @@ function processEvents(
   events: ReadonlyArray<Types.CalendarEventData>,
   config: Types.Config,
 ): Types.CalendarEventData[] {
-  // Group events by their source calendar entity
-  const eventsByEntity: Record<string, Types.CalendarEventData[]> = {};
-  events.forEach((event) => {
-    if (!event?._entityId) return;
-
-    if (!eventsByEntity[event._entityId]) {
-      eventsByEntity[event._entityId] = [];
-    }
-
-    eventsByEntity[event._entityId].push({ ...event });
-  });
-
-  // Final array to hold all processed events
   const processedEvents: Types.CalendarEventData[] = [];
-
   // Set to track already handled events when filter_duplicates is true
-  const handledEventSignatures = config.filter_duplicates ? new Set<string>() : null;
+  const handledEventSignatures = config.filter_duplicates ? new Set<string>() : undefined;
 
-  // Process each entity configuration in order to maintain priority
-  for (const entityConfig of config.entities) {
+  // For each entity config (even if same entity), process independently
+  config.entities.forEach((entityConfig) => {
     const entityId = typeof entityConfig === 'string' ? entityConfig : entityConfig.entity;
-    const entityEvents = eventsByEntity[entityId] || [];
+    // Only consider events for this entity
+    const entityEvents = events.filter((event) => event._entityId === entityId);
+    if (entityEvents.length === 0) return;
 
-    if (entityEvents.length === 0) continue;
+    // Apply allowlist/blocklist for this config
+    let matchedEvents = filterEventsForEntity(entityEvents, entityConfig);
 
-    // Filter events based on entity configuration
-    const matchedEvents = filterEventsForEntity(entityEvents, entityConfig);
+    // Remove events already handled by previous configs (if filter_duplicates)
+    matchedEvents = matchedEvents.filter((event) => {
+      if (!handledEventSignatures) return true;
+      const signature = generateEventSignature(event);
+      if (handledEventSignatures.has(signature)) return false;
+      handledEventSignatures.add(signature);
+      return true;
+    });
 
-    // Process matched events
-    for (const event of matchedEvents) {
-      // Generate unique signature for duplicate detection
-      const signature = config.filter_duplicates ? generateEventSignature(event) : '';
+    // Assign matched config and label for rendering
+    matchedEvents.forEach((event) => {
+      event._matchedConfig = typeof entityConfig === 'object' ? entityConfig : undefined;
+      event._entityLabel = getEntityLabel(entityId, config, event);
+    });
 
-      // Skip this event if it's a duplicate and filter_duplicates is enabled
-      if (config.filter_duplicates && handledEventSignatures?.has(signature)) {
-        continue;
-      }
-
-      // Mark this event as handled if filter_duplicates is enabled
-      if (config.filter_duplicates) {
-        handledEventSignatures?.add(signature);
-      }
-
-      // Create a copy with matched configuration
-      const processedEvent = { ...event };
-
-      // Store the matched configuration for rendering
-      if (typeof entityConfig !== 'string') {
-        processedEvent._matchedConfig = entityConfig;
-      }
-
-      // Add to final result
-      processedEvents.push(processedEvent);
-    }
-  }
+    processedEvents.push(...matchedEvents);
+  });
 
   // Split multi-day events after all processing is complete
   const finalEvents = processMultiDayEvents(processedEvents, config);
