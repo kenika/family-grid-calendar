@@ -1,4 +1,32 @@
+# Calendar Card Pro v3.0.5
+
+## 🐛 Bug Fixes
+
+- **Allowlist/Blocklist Filtering Fix** - Fixed incorrect behavior when using multiple configurations for the same calendar entity with different allowlist/blocklist filters. Each entity configuration is now processed independently, correctly applying filters and event limits.
+- **Empty Space Removal** - Resolved an issue causing excessive empty space when `compact_events_to_show` was set only at the entity level without a global limit. Days without visible events are now properly filtered out, eliminating unnecessary empty space.
+- **Ukrainian Translation Fix** - Corrected incorrect Ukrainian translations for calendar elements.
+
+## Related Issues
+
+- [#228](https://github.com/alexpfau/calendar-card-pro/issues/228) - Calendar event filtering applies incorrectly to multiple instances of the same calendar entity by @Zerosignal84
+- [#223](https://github.com/alexpfau/calendar-card-pro/issues/223) - Incorrect Ukrainian translation by @merlin-zaraza
+- [#224](https://github.com/alexpfau/calendar-card-pro/pull/224) - Fix Ukrainian translation by @merlin-zaraza
+
+**Full Changelog**: https://github.com/alexpfau/calendar-card-pro/compare/v3.0.4...v3.0.5
+
+---
+
 # Calendar Card Pro v3.0.4
+
+## 🐛 Bug Fixes
+
+- **Fixed accent color backgrounds** - Resolved an issue where event background colors wouldn't display properly when using named colors like "blue" in the accent_color setting (RGB and hex values were unaffected)
+
+## Related Issues
+
+- [#219](https://github.com/alexpfau/calendar-card-pro/issues/219) - Shaded Accent Backgrounds fail after 3.0.x by @dml105
+
+**Full Changelog**: https://github.com/alexpfau/calendar-card-pro/compare/v3.0.3...v3.0.4# Calendar Card Pro v3.0.4
 
 ## 🐛 Bug Fixes
 
