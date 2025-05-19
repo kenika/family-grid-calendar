@@ -1,3 +1,17 @@
+# Calendar Card Pro v3.0.6
+
+## 🐛 Bug Fixes
+
+- **Event Background Color Fix** - Fixed an issue where the event background color did not correctly use the global `accent_color` setting when no entity-specific `accent_color` was defined. The event background now properly matches the global accent color setting.
+
+## Related Issues
+
+-
+
+**Full Changelog**: https://github.com/alexpfau/calendar-card-pro/compare/v3.0.5...v3.0.6
+
+---
+
 # Calendar Card Pro v3.0.5
 
 ## 🐛 Bug Fixes
