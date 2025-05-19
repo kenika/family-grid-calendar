@@ -1,12 +1,17 @@
 # Calendar Card Pro v3.0.6
 
+## 🎉 New Features
+
+- **Slovak Editor Translation** - Added complete Slovak translation for the visual configuration editor, making Slovak the second fully supported editor language after English. (Thanks @jose1711, #230)
+
 ## 🐛 Bug Fixes
 
 - **Event Background Color Fix** - Fixed an issue where the event background color did not correctly use the global `accent_color` setting when no entity-specific `accent_color` was defined. The event background now properly matches the global accent color setting.
+- **Slovak Translation Typo Fix** - Fixed a small typo in the Slovak translation for the calendar card interface. (Thanks @jose1711, #230)
 
 ## Related Issues
 
--
+- [#230](https://github.com/alexpfau/calendar-card-pro/pull/230) - Update Slovak translation by @jose1711
 
 **Full Changelog**: https://github.com/alexpfau/calendar-card-pro/compare/v3.0.5...v3.0.6
 
