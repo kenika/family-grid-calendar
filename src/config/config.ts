@@ -166,7 +166,7 @@ export function normalizeEntities(
         return {
           entity: item,
           color: 'var(--primary-text-color)',
-          accent_color: 'var(--calendar-card-line-color-vertical)',
+          accent_color: undefined,
         };
       }
       if (typeof item === 'object' && item.entity) {
@@ -174,7 +174,7 @@ export function normalizeEntities(
           entity: item.entity,
           label: item.label,
           color: item.color || 'var(--primary-text-color)',
-          accent_color: item.accent_color || 'var(--calendar-card-line-color-vertical)',
+          accent_color: item.accent_color || undefined,
           show_time: item.show_time,
           show_location: item.show_location,
           compact_events_to_show: item.compact_events_to_show,
