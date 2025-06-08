@@ -605,6 +605,11 @@ export function renderDay(
   const dayDate = new Date(day.timestamp);
   const isToday = dayDate.toDateString() === todayStart.toDateString();
 
+  // Check if this day is tomorrow
+  const tomorrowStart = new Date(todayStart);
+  tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+  const isTomorrow = dayDate.toDateString() === tomorrowStart.toDateString();
+
   // Separator precedence hierarchy (highest to lowest):
   // 1. Month boundaries (with month separator enabled)
   // 2. Week boundaries (with week separator or week numbers enabled)
@@ -640,7 +645,7 @@ export function renderDay(
 
   return html`
     ${daySeparator}
-    <table class="day-table ${isToday ? 'today' : 'future-day'}">
+    <table class="day-table ${isToday ? 'today' : isTomorrow ? 'tomorrow future-day' : 'future-day'}">
       ${repeat(
         day.events,
         (event, index) => `${event._entityId}-${event.summary}-${index}`,
