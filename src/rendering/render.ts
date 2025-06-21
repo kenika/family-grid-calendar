@@ -603,12 +603,15 @@ export function renderDay(
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const dayDate = new Date(day.timestamp);
-  const isToday = dayDate.toDateString() === todayStart.toDateString();
+  const dayDateString = dayDate.toDateString();
+  const todayStartString = todayStart.toDateString();
+  const isToday = dayDateString === todayStartString;
 
   // Check if this day is tomorrow
   const tomorrowStart = new Date(todayStart);
   tomorrowStart.setDate(tomorrowStart.getDate() + 1);
-  const isTomorrow = dayDate.toDateString() === tomorrowStart.toDateString();
+  const tomorrowStartString = tomorrowStart.toDateString();
+  const isTomorrow = dayDateString === tomorrowStartString;
 
   // Separator precedence hierarchy (highest to lowest):
   // 1. Month boundaries (with month separator enabled)
