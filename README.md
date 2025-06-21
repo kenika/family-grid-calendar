@@ -1441,6 +1441,7 @@ For those interested in contributing code, I maintain detailed **[architecture d
 
 **Calendar Card Pro** currently supports:
 
+- **Bulgarian** (`bg`)
 - **Catalan** (`ca`)
 - **Czech** (`cs`)
 - **Danish** (`da`)

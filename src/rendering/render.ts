@@ -516,7 +516,7 @@ function renderDateColumn(
       const dateConfig = config.weather?.date || {};
       const showConditions = dateConfig.show_conditions !== false;
       const showHighTemp = dateConfig.show_high_temp !== false;
-      const showLowTemp = dateConfig.show_low_temp === true && dailyForecast.templow;
+      const showLowTemp = dateConfig.show_low_temp === true && dailyForecast.templow !== undefined;
 
       // Get styling from config
       const iconSize = dateConfig.icon_size || '14px';
