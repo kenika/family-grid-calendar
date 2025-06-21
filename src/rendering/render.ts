@@ -648,7 +648,12 @@ export function renderDay(
 
   return html`
     ${daySeparator}
-    <table class="day-table ${isToday ? 'today' : isTomorrow ? 'tomorrow future-day' : 'future-day'}">
+    <table class=${classMap({
+      'day-table': true,
+      'today': isToday,
+      'tomorrow': isTomorrow,
+      'future-day': !isToday,
+    })}>
       ${repeat(
         day.events,
         (event, index) => `${event._entityId}-${event.summary}-${index}`,
