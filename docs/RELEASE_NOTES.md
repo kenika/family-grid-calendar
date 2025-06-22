@@ -1,3 +1,52 @@
+# Calendar Card Pro v3.1.0
+
+**Enhanced internationalization and improved customization.** This release significantly expands language support for the visual configuration editor while adding powerful new customization options and fixing important display issues.
+
+## 🎉 New Features
+
+### 🌐 Expanded Editor Language Support
+
+Calendar Card Pro's visual configuration editor now supports three additional languages, making configuration accessible to even more users:
+
+- **Norwegian Bokmål Editor Translation** - Complete translation for the visual configuration editor interface (Thanks @mathiasbk, #235)
+- **German Editor Translation** - Complete translation for the visual configuration editor interface (Thanks @NetSecond, #237)
+- **Swedish Editor Translation** - Complete translation for the visual configuration editor interface (Thanks @JonasHedberg, #238)
+
+The visual editor now supports 5 languages total: English, Slovak, Norwegian, German, and Swedish.
+
+### 🆕 New Language Addition
+
+- **Bulgarian Language Support** - Added complete Bulgarian translation for the calendar card interface, bringing the total number of supported languages to **30**! (Thanks @kyutov, #246)
+
+### 🎨 Enhanced Styling Capabilities
+
+- **Tomorrow CSS Class** - Added new HTML `tomorrow` CSS class to tomorrow's events, enabling users to use card-mod to apply specific styling to tomorrow's events that's distinct from other future events. See the ReadMe for an example. (Thanks @Squazel, #249)
+
+## 🐛 Bug Fixes
+
+### Weather Display Improvements
+
+- **Zero Temperature Display Fix** - Fixed an issue where minimum temperature values of exactly 0° would not be displayed in the date column when `show_low_temp: true` was configured. The condition now properly handles zero values by checking for `undefined` instead of using truthy evaluation. (Thanks @DaveOzzie, #252)
+
+### Layout and Container Issues
+
+- **Grid Container Overflow Fix** - Resolved an issue where the calendar card would exceed its container boundaries and overlay other sections when `grid_options.rows` was configured. The card now properly respects container boundaries in all grid configurations. (Thanks @Deltids, #233)
+
+## Related Issues
+
+- [#235](https://github.com/alexpfau/calendar-card-pro/pull/235) - Added editor values to Norwegian bokmål language by @mathiasbk
+- [#237](https://github.com/alexpfau/calendar-card-pro/pull/237) - Update de.json (complete) by @NetSecond
+- [#238](https://github.com/alexpfau/calendar-card-pro/pull/238) - Swedish Translation by @JonasHedberg
+- [#246](https://github.com/alexpfau/calendar-card-pro/pull/246) - Add support for Bulgarian language by @kyutov
+- [#248](https://github.com/alexpfau/calendar-card-pro/issues/248) - [Feature]: Include HTML class to indicate "tomorrow" by @Squazel
+- [#249](https://github.com/alexpfau/calendar-card-pro/pull/249) - feat(tomorrow): Added new HTML class 'tomorrow' by @Squazel
+- [#252](https://github.com/alexpfau/calendar-card-pro/issues/252) - [Bug]: Weather minimum temperature not displayed if it's zero degrees by @DaveOzzie
+- [#233](https://github.com/alexpfau/calendar-card-pro/issues/233) - [Bug]: Calendar card exceeds container when grid_options.rows is set by @Deltids
+
+**Full Changelog**: https://github.com/alexpfau/calendar-card-pro/compare/v3.0.6...v3.1.0
+
+---
+
 # Calendar Card Pro v3.0.6
 
 ## 🎉 New Features

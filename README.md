@@ -48,7 +48,7 @@ Built with **performance in mind**, the card leverages **intelligent refresh mec
 - 🌦️ **Weather Integration** – Display weather forecasts alongside your calendar events.
 - ⚡ **Optimized Performance** – Smart caching, progressive rendering, and minimal API calls.
 - 💡 **Deep Home Assistant Integration** – Theme-aware with native ripple effects.
-- 🌍 **Multi-Language Support** – [Available in 29 languages](#-adding-translations), community contributions welcome!
+- 🌍 **Multi-Language Support** – [Available in 30 languages](#-adding-translations), community contributions welcome!
 
 ### 🔗 Dependencies
 
