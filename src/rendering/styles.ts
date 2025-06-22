@@ -93,6 +93,7 @@ export const cardStyles = css`
 
   :host {
     display: block;
+    height: 100%;
   }
 
   ha-card {
