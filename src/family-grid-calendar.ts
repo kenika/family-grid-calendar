@@ -21,6 +21,12 @@ interface PositionedEvent extends CalendarEvent {
   lanes: number;
 }
 
+interface CustomCardEntry {
+  type: string;
+  name: string;
+  description: string;
+}
+
 const HOUR_HEIGHT = 48; // px
 
 @customElement('family-grid-calendar')
@@ -29,6 +35,7 @@ export class FamilyGridCalendar extends LitElement {
 
   @state() private _config?: FamilyGridCalendarConfig;
   @state() private _eventsByDay: Record<string, PositionedEvent[]> = {};
+  @state() private _allDayEventsByDay: Record<string, CalendarEvent[]> = {};
   @state() private _weatherByDay: Record<string, DailyForecast> = {};
   @state() private _activeCalendars: Set<string> = new Set();
 
@@ -116,10 +123,14 @@ export class FamilyGridCalendar extends LitElement {
     );
 
     const positioned: Record<string, PositionedEvent[]> = {};
+    const allDay: Record<string, CalendarEvent[]> = {};
     Object.entries(eventsByDay).forEach(([key, list]) => {
-      positioned[key] = this._positionEvents(list);
+      const timed = list.filter((e) => !e.allDay);
+      positioned[key] = this._positionEvents(timed);
+      allDay[key] = list.filter((e) => e.allDay);
     });
     this._eventsByDay = positioned;
+    this._allDayEventsByDay = allDay;
 
     if (this._config.weather_entity) {
       const forecast = await fetchDailyForecast(this.hass, this._config.weather_entity);
@@ -214,7 +225,18 @@ export class FamilyGridCalendar extends LitElement {
         </div>
         <div class="all_day row">
           <div class="time_axis spacer"></div>
-          ${days.map(() => html`<div class="all_day_area"></div>`)}
+          ${days.map((d) => {
+            const key = getDayKey(d);
+            const events = this._allDayEventsByDay[key] ?? [];
+            return html`<div class="all_day_area">
+              ${events.map(
+                (ev) =>
+                  html`<div class="all_day_event" style="background:${ev.calendar.color}">
+                    ${ev.title}
+                  </div>`,
+              )}
+            </div>`;
+          })}
         </div>
         <div class="main row">
           <div class="time_axis">${this._renderTimeAxis()}</div>
@@ -289,6 +311,17 @@ export class FamilyGridCalendar extends LitElement {
       flex: 1;
       min-height: 24px;
       border-bottom: 1px solid var(--divider-color);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 2px;
+      box-sizing: border-box;
+    }
+    .all_day_event {
+      padding: 2px;
+      border-radius: 4px;
+      color: #fff;
+      font-size: 0.75rem;
     }
     .time_axis {
       display: flex;
@@ -321,8 +354,9 @@ export class FamilyGridCalendar extends LitElement {
   `;
 }
 
-(window as any).customCards = (window as any).customCards || [];
-(window as any).customCards.push({
+const win = window as unknown as { customCards?: CustomCardEntry[] };
+win.customCards = win.customCards || [];
+win.customCards.push({
   type: 'family-grid-calendar',
   name: 'Family Grid Calendar',
   description: 'Week-view calendar with optional weather.',
