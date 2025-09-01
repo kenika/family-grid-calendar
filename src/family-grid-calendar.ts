@@ -5,8 +5,8 @@ import { formatWeekday, formatDate } from './locale';
 import { getDayKey, HOURS } from './utils';
 import type { CalendarConfig, FamilyGridCalendarConfig } from './config';
 import { DEFAULT_REFRESH_MINUTES } from './config';
-import type { DailyForecast } from './weather';
-import { fetchDailyForecast } from './weather';
+import type { WxDaily } from './weather';
+import { fetchWeather } from './weather';
 
 interface CalendarEvent {
   start: Date;
@@ -36,7 +36,7 @@ export class FamilyGridCalendar extends LitElement {
   @state() private _config?: FamilyGridCalendarConfig;
   @state() private _eventsByDay: Record<string, PositionedEvent[]> = {};
   @state() private _allDayEventsByDay: Record<string, CalendarEvent[]> = {};
-  @state() private _weatherByDay: Record<string, DailyForecast> = {};
+  @state() private _weatherByDay: Map<string, WxDaily> = new Map();
   @state() private _activeCalendars: Set<string> = new Set();
 
   private _timer?: number;
@@ -108,7 +108,6 @@ export class FamilyGridCalendar extends LitElement {
     }
     await Promise.all(
       this._config.calendars.map(async (cal) => {
-        if (!this._activeCalendars.has(cal.entity)) return;
         try {
           const path = `calendars/${cal.entity}?start=${startISO}&end=${endISO}`;
           const data: HassCalEvent[] = hass.callApi
@@ -157,13 +156,7 @@ export class FamilyGridCalendar extends LitElement {
     this._allDayEventsByDay = allDay;
 
     if (this._config.weather_entity) {
-      const forecast = await fetchDailyForecast(this.hass, this._config.weather_entity);
-      const wx: Record<string, DailyForecast> = {};
-      forecast.forEach((d) => {
-        const key = String(d.date).split('T')[0];
-        wx[key] = d;
-      });
-      this._weatherByDay = wx;
+      this._weatherByDay = await fetchWeather(this.hass, this._config.weather_entity, 7);
     }
   }
 
@@ -219,29 +212,31 @@ export class FamilyGridCalendar extends LitElement {
     return html`
       <div class="calendar_container">
         <div class="calendar_header">
-          ${this._config.calendars.map(
-            (c) =>
-              html`<button
-                style="color:${c.color}"
-                @click=${() => this._toggleCalendar(c.entity)}
-                ?disabled=${!this._activeCalendars.has(c.entity)}
-              >
-                ${c.name ?? c.entity}
-              </button>`,
-          )}
+          ${this._config.calendars.map((c) => {
+            const color = c.color || '#888';
+            const active = this._activeCalendars.has(c.entity);
+            const bg = active ? color : `${color}33`;
+            const text = active ? '#fff' : '#000';
+            return html`<button
+              style="background:${bg};color:${text}"
+              @click=${() => this._toggleCalendar(c.entity)}
+            >
+              ${c.name ?? c.entity}
+            </button>`;
+          })}
         </div>
         <div class="weekday_header row">
           <div class="time_axis spacer"></div>
           ${days.map((d) => {
             const key = getDayKey(d);
-            const wx = this._weatherByDay[key];
+            const wx = this._weatherByDay.get(key);
             return html`<div class="weekday_header_day">
               <div>${formatWeekday(hass, d)} ${formatDate(hass, d)}</div>
               ${wx
                 ? html`<div class="weather">
-                    <ha-icon icon="mdi:weather-${wx.condition}"></ha-icon>
-                    <span class="high">${wx.high?.toFixed(0)}</span>
-                    <span class="low">${wx.low?.toFixed(0)}</span>
+                    <ha-icon icon="mdi:weather-${wx.cond}"></ha-icon>
+                    <span class="high">${wx.hi != null ? wx.hi.toFixed(0) : '--'}</span>
+                    <span class="low">${wx.lo != null ? wx.lo.toFixed(0) : '--'}</span>
                   </div>`
                 : ''}
             </div>`;
@@ -251,7 +246,9 @@ export class FamilyGridCalendar extends LitElement {
           <div class="time_axis spacer"></div>
           ${days.map((d) => {
             const key = getDayKey(d);
-            const events = this._allDayEventsByDay[key] ?? [];
+            const events = (this._allDayEventsByDay[key] ?? []).filter((ev) =>
+              this._activeCalendars.has(ev.calendar.entity),
+            );
             return html`<div class="all_day_area">
               ${events.map(
                 (ev) =>
@@ -266,7 +263,9 @@ export class FamilyGridCalendar extends LitElement {
           <div class="time_axis">${this._renderTimeAxis()}</div>
           ${days.map((d) => {
             const key = getDayKey(d);
-            const events = this._eventsByDay[key] ?? [];
+            const events = (this._eventsByDay[key] ?? []).filter((ev) =>
+              this._activeCalendars.has(ev.calendar.entity),
+            );
             return html`<div class="day_columns">
               ${events.map((ev) => this._renderEvent(ev))}
             </div>`;
@@ -299,15 +298,16 @@ export class FamilyGridCalendar extends LitElement {
     }
     .calendar_header {
       display: flex;
-      gap: 4px;
+      gap: 8px;
       padding: 4px;
+      justify-content: center;
     }
     .calendar_header button {
-      background: none;
-      border: 1px solid var(--divider-color);
+      border: none;
       border-radius: 4px;
-      padding: 2px 6px;
-      font-size: 0.8rem;
+      padding: 4px 12px;
+      font-size: 1rem;
+      cursor: pointer;
     }
     .row {
       display: flex;
@@ -368,6 +368,13 @@ export class FamilyGridCalendar extends LitElement {
       flex: 1;
       height: calc(var(--hour-height) * 24);
       border-left: 1px solid var(--divider-color);
+      background: repeating-linear-gradient(
+        to bottom,
+        var(--divider-color) 0,
+        var(--divider-color) 1px,
+        transparent 1px,
+        transparent var(--hour-height)
+      );
     }
     .event_block {
       position: absolute;
