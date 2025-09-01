@@ -28,8 +28,8 @@ calendars:
   - entity: calendar.auri_nuesken_gmail_com
     name: Auri
     color: '#03a9f4'
-weather_entity: weather.home
-data_refresh_minutes: 15
+weather_entity: weather.integra_langsbau_1_3
+data_refresh_minutes: 1
 ```
 
 > **Note:** At least one calendar entity must be provided.

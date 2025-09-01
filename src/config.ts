@@ -12,4 +12,4 @@ export interface FamilyGridCalendarConfig {
   data_refresh_minutes?: number;
 }
 
-export const DEFAULT_REFRESH_MINUTES = 15;
+export const DEFAULT_REFRESH_MINUTES = 1;
