@@ -5,8 +5,8 @@ import { formatWeekday, formatDate } from './locale';
 import { getDayKey, HOURS } from './utils';
 import type { CalendarConfig, FamilyGridCalendarConfig } from './config';
 import { DEFAULT_REFRESH_MINUTES } from './config';
-import type { DailyForecast } from './weather';
-import { fetchDailyForecast } from './weather';
+import type { WxDaily } from './weather';
+import { fetchWeather } from './weather';
 
 interface CalendarEvent {
   start: Date;
@@ -36,7 +36,7 @@ export class FamilyGridCalendar extends LitElement {
   @state() private _config?: FamilyGridCalendarConfig;
   @state() private _eventsByDay: Record<string, PositionedEvent[]> = {};
   @state() private _allDayEventsByDay: Record<string, CalendarEvent[]> = {};
-  @state() private _weatherByDay: Record<string, DailyForecast> = {};
+  @state() private _weatherByDay: Map<string, WxDaily> = new Map();
   @state() private _activeCalendars: Set<string> = new Set();
 
   private _timer?: number;
@@ -157,13 +157,7 @@ export class FamilyGridCalendar extends LitElement {
     this._allDayEventsByDay = allDay;
 
     if (this._config.weather_entity) {
-      const forecast = await fetchDailyForecast(this.hass, this._config.weather_entity);
-      const wx: Record<string, DailyForecast> = {};
-      forecast.forEach((d) => {
-        const key = String(d.date).split('T')[0];
-        wx[key] = d;
-      });
-      this._weatherByDay = wx;
+      this._weatherByDay = await fetchWeather(this.hass, this._config.weather_entity, 7);
     }
   }
 
@@ -234,14 +228,14 @@ export class FamilyGridCalendar extends LitElement {
           <div class="time_axis spacer"></div>
           ${days.map((d) => {
             const key = getDayKey(d);
-            const wx = this._weatherByDay[key];
+            const wx = this._weatherByDay.get(key);
             return html`<div class="weekday_header_day">
               <div>${formatWeekday(hass, d)} ${formatDate(hass, d)}</div>
               ${wx
                 ? html`<div class="weather">
-                    <ha-icon icon="mdi:weather-${wx.condition}"></ha-icon>
-                    <span class="high">${wx.high?.toFixed(0)}</span>
-                    <span class="low">${wx.low?.toFixed(0)}</span>
+                    <ha-icon icon="mdi:weather-${wx.cond}"></ha-icon>
+                    <span class="high">${wx.hi?.toFixed(0)}</span>
+                    <span class="low">${wx.lo?.toFixed(0)}</span>
                   </div>`
                 : ''}
             </div>`;
