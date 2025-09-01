@@ -237,6 +237,7 @@ export class FamilyGridCalendar extends LitElement {
                     <ha-icon icon="mdi:weather-${wx.cond}"></ha-icon>
                     <span class="high">${wx.hi != null ? wx.hi.toFixed(0) : '--'}</span>
                     <span class="low">${wx.lo != null ? wx.lo.toFixed(0) : '--'}</span>
+
                   </div>`
                 : ''}
             </div>`;
