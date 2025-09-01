@@ -33,6 +33,7 @@ export class FamilyGridCalendar extends LitElement {
   @state() private _activeCalendars: Set<string> = new Set();
   @state() private _error?: string;
 
+
   private _timer?: number;
 
   setConfig(config: FamilyGridCalendarConfig) {
@@ -132,6 +133,7 @@ export class FamilyGridCalendar extends LitElement {
       this._error = undefined;
     } catch (e) {
       this._error = (e as Error).message;
+
     }
   }
 
@@ -187,6 +189,7 @@ export class FamilyGridCalendar extends LitElement {
     return html`
       <div class="calendar_container">
         ${this._error ? html`<div class="error">${this._error}</div>` : ''}
+
         <div class="calendar_header">
           ${this._config.calendars.map(
             (c) =>
@@ -216,6 +219,7 @@ export class FamilyGridCalendar extends LitElement {
                           >${wx.precipitation_probability.toFixed(0)}%</span
                         >`
                       : ''}
+
                   </div>`
                 : ''}
             </div>`;
@@ -260,6 +264,7 @@ export class FamilyGridCalendar extends LitElement {
       padding: 4px;
       text-align: center;
     }
+
     .calendar_container {
       border: 1px solid var(--divider-color);
       background: var(--card-background-color, #fff);
@@ -302,6 +307,7 @@ export class FamilyGridCalendar extends LitElement {
     .weekday_header .weather .precip {
       font-size: 0.7rem;
     }
+
     .all_day_area {
       flex: 1;
       min-height: 24px;

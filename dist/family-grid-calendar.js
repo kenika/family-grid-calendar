@@ -17,6 +17,7 @@ var wt=Object.defineProperty;var Et=(r,t,e)=>t in r?wt(r,t,{enumerable:!0,config
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */var F,W;class P extends w{constructor(){super(...arguments),this.renderOptions={host:this},this._$Do=void 0}createRenderRoot(){var t,e;const i=super.createRenderRoot();return(t=(e=this.renderOptions).renderBefore)!==null&&t!==void 0||(e.renderBefore=i.firstChild),i}update(t){const e=this.render();this.hasUpdated||(this.renderOptions.isConnected=this.isConnected),super.update(t),this._$Do=zt(e,this.renderRoot,this.renderOptions)}connectedCallback(){var t;super.connectedCallback(),(t=this._$Do)===null||t===void 0||t.setConnected(!0)}disconnectedCallback(){var t;super.disconnectedCallback(),(t=this._$Do)===null||t===void 0||t.setConnected(!1)}render(){return S}}P.finalized=!0,P._$litElement$=!0,(F=globalThis.litElementHydrateSupport)===null||F===void 0||F.call(globalThis,{LitElement:P});const dt=globalThis.litElementPolyfillSupport;dt==null||dt({LitElement:P});((W=globalThis.litElementVersions)!==null&&W!==void 0?W:globalThis.litElementVersions=[]).push("3.3.3");/**
+
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
@@ -33,6 +34,7 @@ var wt=Object.defineProperty;var Et=(r,t,e)=>t in r?wt(r,t,{enumerable:!0,config
  * Copyright 2021 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */var q;((q=window.HTMLSlotElement)===null||q===void 0?void 0:q.prototype.assignedElements)!=null;const Vt=(r,t)=>new Intl.DateTimeFormat(r.locale.language,{weekday:"short"}).format(t),Ft=(r,t)=>new Intl.DateTimeFormat(r.locale.language,{day:"numeric",month:"short"}).format(t),Wt=Array.from({length:24},(r,t)=>`${t.toString().padStart(2,"0")}:00`);function K(r){return r.toISOString().split("T")[0]}const pt=15;async function qt(r,t){var s,o,n,l;try{const a=await((s=r.callWS)==null?void 0:s.call(r,{type:"weather/get_forecast",entity_id:t,forecast_type:"daily"})),h=ut(a);if(h.length)return h}catch{}try{const a=await((o=r.callWS)==null?void 0:o.call(r,{type:"weather/get_forecast",entity_id:t,forecast_type:"hourly"})),h=Array.isArray(a==null?void 0:a.forecast)?a.forecast:void 0;if(h){const d=_t(h);if(d.length)return d}}catch{}const e=(l=(n=r.states)==null?void 0:n[t])==null?void 0:l.attributes,i=Array.isArray(e==null?void 0:e.forecast)?e==null?void 0:e.forecast:void 0;if(i&&i.length){const h="temperature"in i[0]?_t(i):ut({forecast:i});if(h.length)return h}return[]}function ut(r){return r&&typeof r=="object"&&"forecast"in r&&Array.isArray(r.forecast)?r.forecast.map(t=>({date:String(t.datetime??t.datetime_iso??t.date),high:typeof t.temperature=="number"?t.temperature:void 0,low:typeof t.templow=="number"?t.templow:void 0,condition:typeof t.condition=="string"?t.condition:void 0,precipitation_probability:typeof t.precipitation_probability=="number"?t.precipitation_probability:void 0})):[]}function _t(r){const t={};for(const e of r){const i=String(e.datetime??e.datetime_iso??e.date).split("T")[0],s=t[i]||(t[i]={date:i,high:void 0,low:void 0,condition:void 0,precipitation_probability:void 0,count:{}}),o=typeof e.temperature=="number"?e.temperature:void 0;o!==void 0&&(s.high=s.high===void 0?o:Math.max(s.high,o),s.low=s.low===void 0?o:Math.min(s.low,o));const n=typeof e.condition=="string"?e.condition:void 0;n&&(s.count[n]=(s.count[n]??0)+1);const l=typeof e.precipitation_probability=="number"?e.precipitation_probability:void 0;l!==void 0&&(s.precipitation_probability=Math.max(s.precipitation_probability??0,l))}return Object.values(t).map(({count:e,...i})=>{var o;const s=(o=Object.entries(e).sort((n,l)=>l[1]-n[1])[0])==null?void 0:o[0];return{...i,condition:s}})}var bt=Object.defineProperty,Kt=Object.getOwnPropertyDescriptor,Gt=(r,t,e)=>t in r?bt(r,t,{enumerable:!0,configurable:!0,writable:!0,value:e}):r[t]=e,b=(r,t,e,i)=>{for(var s=i>1?void 0:i?Kt(t,e):t,o=r.length-1,n;o>=0;o--)(n=r[o])&&(s=(i?n(t,e,s):n(s))||s);return i&&s&&bt(t,e,s),s},Zt=(r,t,e)=>Gt(r,t+"",e);const Q=48;let f=class extends P{constructor(){super(...arguments);$(this,"hass");$(this,"_config");$(this,"_eventsByDay",{});$(this,"_weatherByDay",{});$(this,"_activeCalendars",new Set);$(this,"_error");$(this,"_timer")}setConfig(t){this._config={data_refresh_minutes:pt,...t},this._activeCalendars=new Set(t.calendars.map(e=>e.entity)),this._startTimer(),this._fetchData()}connectedCallback(){super.connectedCallback(),this._startTimer()}disconnectedCallback(){super.disconnectedCallback(),this._timer&&(clearInterval(this._timer),this._timer=void 0)}_startTimer(){var e;this._timer&&clearInterval(this._timer);const t=((e=this._config)==null?void 0:e.data_refresh_minutes)??pt;this._timer=window.setInterval(()=>this._fetchData(),t*60*1e3)}async _fetchData(){if(!(!this.hass||!this._config))try{const t=this.hass,e=new Date;e.setHours(0,0,0,0);const i=new Date(e);i.setDate(e.getDate()+7);const s=e.toISOString(),o=i.toISOString(),n={};await Promise.all(this._config.calendars.map(async a=>{if(this._activeCalendars.has(a.entity))try{const h=`calendars/${a.entity}?start=${s}&end=${o}`,d=t.callApi?await t.callApi("GET",h):await fetch(`/api/${h}`).then(c=>c.json());for(const c of d||[]){const p=new Date(c.start||c.start_time||c.startTime||0),_=new Date(c.end||c.end_time||c.endTime||0),C=K(p);(n[C]||(n[C]=[])).push({start:p,end:_,title:c.summary||c.title||"",calendar:a,allDay:c.all_day||c.allDay||!1})}}catch{}}));const l={};if(Object.entries(n).forEach(([a,h])=>{l[a]=this._positionEvents(h)}),this._eventsByDay=l,this._config.weather_entity){const a=await qt(this.hass,this._config.weather_entity),h={};a.forEach(d=>{const c=String(d.date).split("T")[0];h[c]=d}),this._weatherByDay=h}this._error=void 0}catch(t){this._error=t.message}}_positionEvents(t){const e=[...t].sort((n,l)=>n.start.getTime()-l.start.getTime()),i=[],s=[];for(const n of e){let l=i.findIndex(a=>a<=n.start.getTime());l===-1?(l=i.length,i.push(n.end.getTime())):i[l]=n.end.getTime(),s.push({...n,lane:l,lanes:0})}const o=i.length||1;return s.map(n=>({...n,lanes:o}))}_renderTimeAxis(){return Wt.map(t=>v`<div>${t}</div>`)}_renderEvent(t){const e=t.start.getHours()*60+t.start.getMinutes(),i=t.end.getHours()*60+t.end.getMinutes(),s=e/60*Q,o=(i-e)/60*Q,n=100/t.lanes,l=t.lane*n;return v`<div
+
       class="event_block"
       style="top:${s}px;height:${o}px;left:${l}%;width:${n}%;background:${t.calendar.color}"
     >
@@ -42,6 +44,7 @@ var wt=Object.defineProperty;var Et=(r,t,e)=>t in r?wt(r,t,{enumerable:!0,config
         ${this._error?v`<div class="error">${this._error}</div>`:""}
         <div class="calendar_header">
           ${this._config.calendars.map(s=>v`<button
+
                 style="color:${s.color}"
                 @click=${()=>this._toggleCalendar(s.entity)}
                 ?disabled=${!this._activeCalendars.has(s.entity)}
@@ -60,6 +63,7 @@ var wt=Object.defineProperty;var Et=(r,t,e)=>t in r?wt(r,t,{enumerable:!0,config
                     ${n.precipitation_probability!==void 0?v`<span class="precip"
                           >${n.precipitation_probability.toFixed(0)}%</span
                         >`:""}
+
                   </div>`:""}
             </div>`})}
         </div>
@@ -70,11 +74,13 @@ var wt=Object.defineProperty;var Et=(r,t,e)=>t in r?wt(r,t,{enumerable:!0,config
         <div class="main row">
           <div class="time_axis">${this._renderTimeAxis()}</div>
           ${e.map(s=>{const o=K(s),n=this._eventsByDay[o]??[];return v`<div class="day_columns">
+
               ${n.map(l=>this._renderEvent(l))}
             </div>`})}
         </div>
       </div>
     `}_toggleCalendar(t){this._activeCalendars.has(t)?this._activeCalendars.delete(t):this._activeCalendars.add(t),this.requestUpdate(),this._fetchData()}};Zt(f,"styles",xt`
+
     :host {
       display: block;
       --hour-height: ${Q}px;
@@ -85,6 +91,7 @@ var wt=Object.defineProperty;var Et=(r,t,e)=>t in r?wt(r,t,{enumerable:!0,config
       padding: 4px;
       text-align: center;
     }
+
     .calendar_container {
       border: 1px solid var(--divider-color);
       background: var(--card-background-color, #fff);
@@ -127,6 +134,7 @@ var wt=Object.defineProperty;var Et=(r,t,e)=>t in r?wt(r,t,{enumerable:!0,config
     .weekday_header .weather .precip {
       font-size: 0.7rem;
     }
+
     .all_day_area {
       flex: 1;
       min-height: 24px;
@@ -161,3 +169,4 @@ var wt=Object.defineProperty;var Et=(r,t,e)=>t in r?wt(r,t,{enumerable:!0,config
       overflow: hidden;
     }
   `);b([At({attribute:!1})],f.prototype,"hass",2);b([O()],f.prototype,"_config",2);b([O()],f.prototype,"_eventsByDay",2);b([O()],f.prototype,"_weatherByDay",2);b([O()],f.prototype,"_activeCalendars",2);b([O()],f.prototype,"_error",2);f=b([Bt("family-grid-calendar")],f);
+
