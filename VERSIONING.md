@@ -14,11 +14,13 @@ MAJOR.MINOR.PATCH
 
 ## Release Process
 
-1. Start from the `dev` branch.
+1. Start from the `main` branch.
 2. Update the `version` field in `package.json`.
 3. Run `npm run format`, `npm run lint`, and `npm run build` to ensure code quality and update `dist/`.
 4. Commit the changes and create a Git tag matching the version, e.g. `v1.2.3`.
-5. Merge `dev` into `main` and push the tag.
+5. Push `main` and the tag to the remote.
+
+Each tag represents a stable release, allowing easy rollback if a feature branch introduces breaking changes.
 
 ## Initial Version
 
