@@ -1,4 +1,7 @@
 {
+  "view": "View",
+  "full_grid": "Full grid view",
+  "list": "List",
   "daysOfWeek": ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"],
   "fullDaysOfWeek": ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"],
   "months": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"],

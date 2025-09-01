@@ -10,6 +10,9 @@
   "noEvents": "Ingen kommende hendelser",
   "loading": "Laster kalenderhendelser...",
   "error": "Feil: Kalenderenheten ble ikke funnet eller er ikke konfigurert riktig",
+  "view": "View",
+  "full_grid": "Full grid view",
+  "list": "List",
 
   "editor": {
     "calendar_entities": "kalenderhendelser",

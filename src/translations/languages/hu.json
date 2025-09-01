@@ -1,4 +1,7 @@
 {
+  "view": "View",
+  "full_grid": "Full grid view",
+  "list": "List",
   "daysOfWeek": ["Vas", "Hét", "Kedd", "Sze", "Csüt", "Pén", "Szo"],
   "fullDaysOfWeek": ["Vasárnap", "Hétfő", "Kedd", "Szerda", "Csütörtök", "Péntek", "Szombat"],
   "months": ["Jan", "Feb", "Már", "Ápr", "Máj", "Jún", "Júl", "Aug", "Szep", "Okt", "Nov", "Dec"],

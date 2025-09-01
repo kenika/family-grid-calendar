@@ -26,6 +26,7 @@ export const DEFAULT_CONFIG: Types.Config = {
   filter_duplicates: false,
   split_multiday_events: false,
   language: undefined,
+  view: 'list',
 
   // Header
   title: undefined,

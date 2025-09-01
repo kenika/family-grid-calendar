@@ -1,4 +1,7 @@
 {
+  "view": "View",
+  "full_grid": "Full grid view",
+  "list": "List",
   "daysOfWeek": ["Nd", "Pn", "Wt", "Śr", "Cz", "Pt", "Sb"],
   "fullDaysOfWeek": [
     "niedzieli",

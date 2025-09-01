@@ -1501,3 +1501,61 @@ export function calculateWeekNumberWithMajorityRule(
 
   return weekNumber;
 }
+
+// -----------------------------------------------------------------------------
+// GRID LAYOUT UTILITIES
+// -----------------------------------------------------------------------------
+
+/**
+ * Calculate positional data for events in the full-grid view
+ *
+ * @param events Events occurring on the same day
+ * @returns Array with minute offsets and lane information
+ */
+export function calculateGridPositions(events: Types.CalendarEventData[]): Array<{
+  event: Types.CalendarEventData;
+  startMinute: number;
+  endMinute: number;
+  lane: number;
+  laneCount: number;
+}> {
+  // Prepare timed events sorted by start time
+  const timed = events
+    .filter((e) => e.start.dateTime && e.end?.dateTime)
+    .map((e) => {
+      const start = new Date(e.start.dateTime!);
+      const end = new Date(e.end.dateTime!);
+      return {
+        event: e,
+        startMinute: start.getHours() * 60 + start.getMinutes(),
+        endMinute: end.getHours() * 60 + end.getMinutes(),
+      };
+    })
+    .sort((a, b) => a.startMinute - b.startMinute);
+
+  const lanes: number[] = [];
+  const positioned: Array<{
+    event: Types.CalendarEventData;
+    startMinute: number;
+    endMinute: number;
+    lane: number;
+    laneCount: number;
+  }> = [];
+
+  timed.forEach((ev) => {
+    // Find first lane that is free
+    let laneIndex = lanes.findIndex((end) => end <= ev.startMinute);
+    if (laneIndex === -1) {
+      laneIndex = lanes.length;
+      lanes.push(ev.endMinute);
+    } else {
+      lanes[laneIndex] = ev.endMinute;
+    }
+    positioned.push({ ...ev, lane: laneIndex, laneCount: 0 });
+  });
+
+  const laneCount = lanes.length;
+  positioned.forEach((p) => (p.laneCount = laneCount));
+
+  return positioned;
+}

@@ -1,4 +1,7 @@
 {
+  "view": "View",
+  "full_grid": "Full grid view",
+  "list": "List",
   "daysOfWeek": ["Ne", "Po", "Út", "St", "Čt", "Pá", "So"],
   "fullDaysOfWeek": ["Neděle", "Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek", "Sobota"],
   "months": ["Led", "Úno", "Bře", "Dub", "Kvě", "Čvn", "Čvc", "Srp", "Zář", "Říj", "Lis", "Pro"],

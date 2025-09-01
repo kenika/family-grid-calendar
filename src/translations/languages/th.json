@@ -1,4 +1,7 @@
 {
+  "view": "View",
+  "full_grid": "Full grid view",
+  "list": "List",
   "daysOfWeek": ["อา.", "จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส."],
   "fullDaysOfWeek": ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"],
   "months": [
