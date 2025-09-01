@@ -3,9 +3,10 @@ import { customElement, property, state } from 'lit/decorators.js';
 import type { HomeAssistant } from './locale';
 import { formatWeekday, formatDate } from './locale';
 import { getDayKey, HOURS } from './utils';
-import type { CalendarConfig } from './config';
+import type { CalendarConfig, FamilyGridCalendarConfig } from './config';
 import { DEFAULT_REFRESH_MINUTES } from './config';
 import type { DailyForecast } from './weather';
+import { fetchDailyForecast } from './weather';
 
 interface CalendarEvent {
   start: Date;
@@ -22,26 +23,30 @@ interface PositionedEvent extends CalendarEvent {
 
 const HOUR_HEIGHT = 48; // px
 
-const MOCK_CALENDARS: CalendarConfig[] = [
-  { entity: 'calendar.nuesken_family_gmail', name: 'Family', color: '#3f51b5' },
-  { entity: 'calendar.dennis_nuesken_gmail', name: 'Dennis', color: '#9c27b0' },
-  { entity: 'calendar.auri_nuesken_gmail_com', name: 'Auri', color: '#03a9f4' },
-];
-
 @customElement('family-grid-calendar')
 export class FamilyGridCalendar extends LitElement {
   @property({ attribute: false }) hass?: HomeAssistant;
 
+  @state() private _config?: FamilyGridCalendarConfig;
   @state() private _eventsByDay: Record<string, PositionedEvent[]> = {};
   @state() private _weatherByDay: Record<string, DailyForecast> = {};
+  @state() private _activeCalendars: Set<string> = new Set();
 
   private _timer?: number;
 
+  setConfig(config: FamilyGridCalendarConfig) {
+    this._config = {
+      data_refresh_minutes: DEFAULT_REFRESH_MINUTES,
+      ...config,
+    };
+    this._activeCalendars = new Set(config.calendars.map((c) => c.entity));
+    this._startTimer();
+    this._fetchData();
+  }
+
   connectedCallback() {
     super.connectedCallback();
-    this._generateMockData();
-    const refresh = DEFAULT_REFRESH_MINUTES * 60 * 1000;
-    this._timer = window.setInterval(() => this._generateMockData(), refresh);
+    this._startTimer();
   }
 
   disconnectedCallback() {
@@ -52,46 +57,76 @@ export class FamilyGridCalendar extends LitElement {
     }
   }
 
-  private _generateMockData() {
-    const today = new Date();
-    const events: Record<string, PositionedEvent[]> = {};
-    const weather: Record<string, DailyForecast> = {};
-    for (let i = 0; i < 7; i++) {
-      const day = new Date(today);
-      day.setDate(today.getDate() + i);
-      const key = getDayKey(day);
+  private _startTimer() {
+    if (this._timer) clearInterval(this._timer);
+    const mins = this._config?.data_refresh_minutes ?? DEFAULT_REFRESH_MINUTES;
+    this._timer = window.setInterval(() => this._fetchData(), mins * 60 * 1000);
+  }
 
-      const e1Start = new Date(day);
-      e1Start.setHours(9, 0, 0, 0);
-      const e1End = new Date(day);
-      e1End.setHours(10, 30, 0, 0);
+  private async _fetchData() {
+    if (!this.hass || !this._config) return;
+    const hass = this.hass;
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 7);
+    const startISO = start.toISOString();
+    const endISO = end.toISOString();
 
-      const e2Start = new Date(day);
-      e2Start.setHours(9, 30, 0, 0);
-      const e2End = new Date(day);
-      e2End.setHours(12, 0, 0, 0);
-
-      const e3Start = new Date(day);
-      e3Start.setHours(13, 0, 0, 0);
-      const e3End = new Date(day);
-      e3End.setHours(15, 0, 0, 0);
-
-      const dailyEvents: CalendarEvent[] = [
-        { start: e1Start, end: e1End, title: 'Breakfast', calendar: MOCK_CALENDARS[0] },
-        { start: e2Start, end: e2End, title: 'Team Meeting', calendar: MOCK_CALENDARS[1] },
-        { start: e3Start, end: e3End, title: 'Study', calendar: MOCK_CALENDARS[2] },
-      ];
-      events[key] = this._positionEvents(dailyEvents);
-
-      weather[key] = {
-        date: key,
-        high: 25 + i,
-        low: 15 + i,
-        condition: ['sunny', 'cloudy', 'rainy'][i % 3],
-      };
+    const eventsByDay: Record<string, CalendarEvent[]> = {};
+    interface HassCalEvent {
+      start?: string;
+      start_time?: string;
+      startTime?: string;
+      end?: string;
+      end_time?: string;
+      endTime?: string;
+      summary?: string;
+      title?: string;
+      all_day?: boolean;
+      allDay?: boolean;
     }
-    this._eventsByDay = events;
-    this._weatherByDay = weather;
+    await Promise.all(
+      this._config.calendars.map(async (cal) => {
+        if (!this._activeCalendars.has(cal.entity)) return;
+        try {
+          const path = `calendars/${cal.entity}?start=${startISO}&end=${endISO}`;
+          const data: HassCalEvent[] = hass.callApi
+            ? await hass.callApi<HassCalEvent[]>('GET', path)
+            : ((await fetch(`/api/${path}`).then((r) => r.json())) as HassCalEvent[]);
+          for (const ev of data || []) {
+            const evStart = new Date(ev.start || ev.start_time || ev.startTime || 0);
+            const evEnd = new Date(ev.end || ev.end_time || ev.endTime || 0);
+            const key = getDayKey(evStart);
+            (eventsByDay[key] ||= []).push({
+              start: evStart,
+              end: evEnd,
+              title: ev.summary || ev.title || '',
+              calendar: cal,
+              allDay: ev.all_day || ev.allDay || false,
+            });
+          }
+        } catch (_e) {
+          // ignore individual calendar errors
+        }
+      }),
+    );
+
+    const positioned: Record<string, PositionedEvent[]> = {};
+    Object.entries(eventsByDay).forEach(([key, list]) => {
+      positioned[key] = this._positionEvents(list);
+    });
+    this._eventsByDay = positioned;
+
+    if (this._config.weather_entity) {
+      const forecast = await fetchDailyForecast(this.hass, this._config.weather_entity);
+      const wx: Record<string, DailyForecast> = {};
+      forecast.forEach((d) => {
+        const key = String(d.date).split('T')[0];
+        wx[key] = d;
+      });
+      this._weatherByDay = wx;
+    }
   }
 
   private _positionEvents(events: CalendarEvent[]): PositionedEvent[] {
@@ -134,6 +169,7 @@ export class FamilyGridCalendar extends LitElement {
 
   render() {
     const hass = this.hass ?? { locale: { language: 'en' } };
+    if (!this._config) return html``;
     const days: Date[] = [];
     const start = new Date();
     for (let i = 0; i < 7; i++) {
@@ -145,8 +181,15 @@ export class FamilyGridCalendar extends LitElement {
     return html`
       <div class="calendar_container">
         <div class="calendar_header">
-          ${MOCK_CALENDARS.map(
-            (c) => html`<button style="color:${c.color}">${c.name ?? c.entity}</button>`,
+          ${this._config.calendars.map(
+            (c) =>
+              html`<button
+                style="color:${c.color}"
+                @click=${() => this._toggleCalendar(c.entity)}
+                ?disabled=${!this._activeCalendars.has(c.entity)}
+              >
+                ${c.name ?? c.entity}
+              </button>`,
           )}
         </div>
         <div class="weekday_header row">
@@ -182,6 +225,16 @@ export class FamilyGridCalendar extends LitElement {
         </div>
       </div>
     `;
+  }
+
+  private _toggleCalendar(entity: string) {
+    if (this._activeCalendars.has(entity)) {
+      this._activeCalendars.delete(entity);
+    } else {
+      this._activeCalendars.add(entity);
+    }
+    this.requestUpdate();
+    this._fetchData();
   }
 
   static styles = css`

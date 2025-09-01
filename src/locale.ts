@@ -1,6 +1,8 @@
 export interface HomeAssistant {
   localize?: (key: string, ...args: unknown[]) => string;
   callWS?: <T>(msg: unknown) => Promise<T>;
+  callApi?: <T>(method: string, path: string) => Promise<T>;
+  states?: Record<string, { attributes?: Record<string, unknown> }>;
   locale: {
     language: string;
     time_format?: string;
