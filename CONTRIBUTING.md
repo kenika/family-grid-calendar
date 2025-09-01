@@ -21,10 +21,17 @@
    npm run build
    ```
 
+## Documentation
+
+- Update documentation for any feature changes.
+- Record design decisions in `/docs` or an ADR log.
+
 ## Pull requests
 
 - Ensure `dist/` contains the latest build.
 - Follow the coding guidelines in `AGENTS.md`.
+- Include relevant documentation changes.
+- Explain significant architectural decisions in the pull request description.
 - The `main` branch is protected:
   - direct pushes are blocked,
   - open pull requests from `dev` and wait for at least one approving review, and
