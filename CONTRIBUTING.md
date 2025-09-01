@@ -2,8 +2,9 @@
 
 ## Branch strategy
 
-- `main` contains production-ready code.
-- `dev` is the integration branch for feature work. Create feature branches from `dev` and open pull requests back to `dev`. Releases merge from `dev` into `main`.
+- `main` is the only long-lived branch and contains production-ready code.
+- Create temporary feature branches from `main` and open pull requests back to `main` when work is ready.
+- Frequent tagged releases from `main` provide stable fallback points if a feature branch introduces issues.
 
 ## Development
 
@@ -34,5 +35,5 @@
 - Explain significant architectural decisions in the pull request description.
 - The `main` branch is protected:
   - direct pushes are blocked,
-  - open pull requests from `dev` and wait for at least one approving review, and
+  - open pull requests from feature branches and wait for at least one approving review, and
   - CI must report success via the `build` workflow (runs lint and build) before merging.
