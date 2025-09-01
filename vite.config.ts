@@ -6,7 +6,7 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
     rollupOptions: {
-      input: resolve(__dirname, 'src/family-grid-calendar-card.ts'),
+      input: resolve(__dirname, 'src/family-grid-calendar.ts'),
       output: {
         entryFileNames: 'family-grid-calendar.js',
         format: 'es',
