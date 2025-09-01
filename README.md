@@ -12,6 +12,7 @@ for [HACS](https://hacs.xyz/) distribution.
 - Optional weather integration showing icon, high and low temperatures (high in
   red, low in blue) for each weekday
 - Configurable refresh interval (`data_refresh_minutes`, defaults to 15)
+- Appears in the Lovelace card picker once added as a resource
 
 ### Example configuration
 
@@ -30,6 +31,8 @@ calendars:
 weather_entity: weather.home
 data_refresh_minutes: 15
 ```
+
+> **Note:** At least one calendar entity must be provided.
 
 ## Development
 

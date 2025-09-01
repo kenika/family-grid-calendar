@@ -35,6 +35,9 @@ export class FamilyGridCalendar extends LitElement {
   private _timer?: number;
 
   setConfig(config: FamilyGridCalendarConfig) {
+    if (!config.calendars || config.calendars.length === 0) {
+      throw new Error('At least one calendar entity is required');
+    }
     this._config = {
       data_refresh_minutes: DEFAULT_REFRESH_MINUTES,
       ...config,
@@ -317,6 +320,13 @@ export class FamilyGridCalendar extends LitElement {
     }
   `;
 }
+
+(window as any).customCards = (window as any).customCards || [];
+(window as any).customCards.push({
+  type: 'family-grid-calendar',
+  name: 'Family Grid Calendar',
+  description: 'Week-view calendar with optional weather.',
+});
 
 declare global {
   interface HTMLElementTagNameMap {
