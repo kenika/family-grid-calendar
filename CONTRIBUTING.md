@@ -25,5 +25,7 @@
 
 - Ensure `dist/` contains the latest build.
 - Follow the coding guidelines in `AGENTS.md`.
-- The `main` branch is protected. Open pull requests from `dev` and wait for at least one approving review.
-- CI must report success (lint and build) before merging.
+- The `main` branch is protected:
+  - direct pushes are blocked,
+  - open pull requests from `dev` and wait for at least one approving review, and
+  - CI must report success via the `build` workflow (runs lint and build) before merging.
