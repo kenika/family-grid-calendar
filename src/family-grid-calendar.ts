@@ -1,8 +1,8 @@
 import { LitElement, html, css } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
-@customElement('family-grid-calendar-card')
-export class FamilyGridCalendarCard extends LitElement {
+@customElement('family-grid-calendar')
+export class FamilyGridCalendar extends LitElement {
   static styles = css`
     :host {
       display: block;
@@ -10,12 +10,12 @@ export class FamilyGridCalendarCard extends LitElement {
   `;
 
   render() {
-    return html`<div>Family Grid Calendar Card</div>`;
+    return html`<div>Family Grid Calendar</div>`;
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'family-grid-calendar-card': FamilyGridCalendarCard;
+    'family-grid-calendar': FamilyGridCalendar;
   }
 }

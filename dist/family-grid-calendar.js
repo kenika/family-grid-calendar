@@ -24,7 +24,7 @@ var Mt=Object.create;var I=Object.defineProperty;var Rt=Object.getOwnPropertyDes
  * @license
  * Copyright 2021 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
- */var X;((X=window.HTMLSlotElement)===null||X===void 0?void 0:X.prototype.assignedElements)!=null;var Ct,Y,ie;Ct=[se("family-grid-calendar-card")];class R extends(ie=H){render(){return Jt`<div>Family Grid Calendar Card</div>`}}Y=at(ie),R=ut(Y,0,"FamilyGridCalendarCard",Ct,R),pt(R,"styles",zt`
+ */var X;((X=window.HTMLSlotElement)===null||X===void 0?void 0:X.prototype.assignedElements)!=null;var Ct,Y,ie;Ct=[se("family-grid-calendar")];class R extends(ie=H){render(){return Jt`<div>Family Grid Calendar</div>`}}Y=at(ie),R=ut(Y,0,"FamilyGridCalendar",Ct,R),pt(R,"styles",zt`
     :host {
       display: block;
     }
