@@ -1,4 +1,7 @@
 {
+  "view": "View",
+  "full_grid": "Full grid view",
+  "list": "List",
   "daysOfWeek": ["ned", "pon", "tor", "sre", "čet", "pet", "sob"],
   "fullDaysOfWeek": ["nedelja", "ponedeljek", "torek", "sreda", "četrtek", "petek", "sobota"],
   "months": ["jan", "feb", "mar", "apr", "maj", "jun", "jul", "avg", "sep", "okt", "nov", "dec"],

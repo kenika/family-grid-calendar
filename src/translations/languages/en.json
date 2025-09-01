@@ -10,6 +10,9 @@
   "noEvents": "No upcoming events",
   "loading": "Loading calendar events...",
   "error": "Error: Calendar entity not found or improperly configured",
+  "view": "View",
+  "full_grid": "Full grid view",
+  "list": "List",
 
   "editor": {
     "calendar_entities": "Calendar Entities",

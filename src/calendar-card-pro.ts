@@ -38,6 +38,8 @@ import * as Logger from './utils/logger';
 import * as Styles from './rendering/styles';
 import * as Feedback from './interaction/feedback';
 import * as Render from './rendering/render';
+import * as FullGrid from './rendering/full-grid';
+import * as FullGridStyles from './rendering/full-grid.styles';
 import * as Weather from './utils/weather';
 import * as Editor from './rendering/editor';
 
@@ -81,6 +83,8 @@ class CalendarCardPro extends LitElement {
   @property({ attribute: false }) events: Types.CalendarEventData[] = [];
   @property({ attribute: false }) isLoading = true;
   @property({ attribute: false }) isExpanded = false;
+  // Track which calendars are currently active in grid view
+  @property({ attribute: false }) activeCalendars: string[] = [];
   @property({ attribute: false }) weatherForecasts: Types.WeatherForecasts = {
     daily: {},
     hourly: {},
@@ -131,11 +135,24 @@ class CalendarCardPro extends LitElement {
   }
 
   /**
+   * Events filtered by currently active calendars
+   */
+  get filteredEvents(): Types.CalendarEventData[] {
+    if (!this.activeCalendars.length) {
+      return [];
+    }
+    // Only include events whose entity ID is in the active list
+    return this.events.filter((ev) =>
+      ev._entityId ? this.activeCalendars.includes(ev._entityId) : true,
+    );
+  }
+
+  /**
    * Get events grouped by day
    */
   get groupedEvents(): Types.EventsByDay[] {
     return EventUtils.groupEventsByDay(
-      this.events,
+      this.filteredEvents,
       this.config,
       this.isExpanded,
       this.effectiveLanguage,
@@ -147,7 +164,8 @@ class CalendarCardPro extends LitElement {
   //-----------------------------------------------------------------------------
 
   static get styles() {
-    return Styles.cardStyles;
+    // Merge base card styles with full-grid layout styles
+    return [Styles.cardStyles, FullGridStyles.fullGridStyles];
   }
 
   //-----------------------------------------------------------------------------
@@ -438,6 +456,8 @@ class CalendarCardPro extends LitElement {
 
     this.config = mergedConfig;
     this.config.entities = Config.normalizeEntities(this.config.entities);
+    // Initialize active calendar filter list based on configured entities
+    this.activeCalendars = this.config.entities.map((e) => e.entity);
 
     // Generate deterministic ID for caching
     this._instanceId = Helpers.generateDeterministicId(
@@ -524,6 +544,15 @@ class CalendarCardPro extends LitElement {
   }
 
   /**
+   * Toggle visibility of a calendar entity in full-grid view
+   */
+  toggleCalendar(entityId: string): void {
+    this.activeCalendars = this.activeCalendars.includes(entityId)
+      ? this.activeCalendars.filter((e) => e !== entityId)
+      : [...this.activeCalendars, entityId];
+  }
+
+  /**
    * Handle user action
    */
   handleAction(actionConfig: Types.ActionConfig): void {
@@ -568,22 +597,44 @@ class CalendarCardPro extends LitElement {
         this.isExpanded,
         this.effectiveLanguage,
       );
-      content = Render.renderGroupedEvents(
-        groupedEmptyDays,
-        this.config,
-        this.effectiveLanguage,
-        this.weatherForecasts,
-        this.safeHass,
-      );
+      content =
+        this.config.view === 'full-grid'
+          ? FullGrid.renderFullGrid(
+              groupedEmptyDays,
+              this.config,
+              this.effectiveLanguage,
+              this.weatherForecasts,
+              this.activeCalendars,
+              (entity: string) => this.toggleCalendar(entity),
+              this.safeHass,
+            )
+          : Render.renderGroupedEvents(
+              groupedEmptyDays,
+              this.config,
+              this.effectiveLanguage,
+              this.weatherForecasts,
+              this.safeHass,
+            );
     } else {
-      // Normal state with events - use renderGroupedEvents to handle week numbers and separators
-      content = Render.renderGroupedEvents(
-        this.groupedEvents,
-        this.config,
-        this.effectiveLanguage,
-        this.weatherForecasts,
-        this.safeHass,
-      );
+      // Normal state with events - choose renderer based on view mode
+      content =
+        this.config.view === 'full-grid'
+          ? FullGrid.renderFullGrid(
+              this.groupedEvents,
+              this.config,
+              this.effectiveLanguage,
+              this.weatherForecasts,
+              this.activeCalendars,
+              (entity: string) => this.toggleCalendar(entity),
+              this.safeHass,
+            )
+          : Render.renderGroupedEvents(
+              this.groupedEvents,
+              this.config,
+              this.effectiveLanguage,
+              this.weatherForecasts,
+              this.safeHass,
+            );
     }
 
     // Render main card structure with content

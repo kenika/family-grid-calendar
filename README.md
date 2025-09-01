@@ -250,6 +250,20 @@ Simply click "Update config..." to automatically migrate to the current paramete
 
 </details>
 
+### Full-grid View
+
+Render events in an Outlook-style grid with day columns and a 24‑hour time axis.
+
+```yaml
+type: custom:calendar-card-pro-dev
+view: full-grid
+entities:
+  - calendar.personal
+  - calendar.work
+```
+
+Each calendar gets a filter button in the header so you can toggle its events on and off.
+
 ### Core Settings
 
 #### 🗂️ Entity Configuration

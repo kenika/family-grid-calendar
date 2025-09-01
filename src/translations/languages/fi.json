@@ -1,4 +1,7 @@
 {
+  "view": "View",
+  "full_grid": "Full grid view",
+  "list": "List",
   "daysOfWeek": ["Su", "Ma", "Ti", "Ke", "To", "Pe", "La"],
   "fullDaysOfWeek": [
     "Sunnuntai",

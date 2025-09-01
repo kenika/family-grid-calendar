@@ -1,3 +1,11 @@
+# Unreleased
+
+## Added
+- Added `view` option with new `full-grid` layout, providing Outlook-style day columns and a time axis.
+- Introduced runtime calendar filters with per-entity buttons in the grid header.
+- Implemented `calculateGridPositions` utility for lane-based event placement.
+- Supplied translations and documentation for the full-grid view.
+
 # Calendar Card Pro v3.1.0
 
 **Enhanced internationalization and improved customization.** This release significantly expands language support for the visual configuration editor while adding powerful new customization options and fixing important display issues.

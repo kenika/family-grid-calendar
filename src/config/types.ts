@@ -23,6 +23,8 @@ export interface Config {
   filter_duplicates: boolean;
   split_multiday_events: boolean;
   language?: string;
+  // Display mode for the card - defaults to classic list
+  view?: 'list' | 'full-grid';
 
   // Header
   title?: string;

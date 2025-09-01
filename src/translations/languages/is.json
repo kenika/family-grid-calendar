@@ -1,4 +1,7 @@
 {
+  "view": "View",
+  "full_grid": "Full grid view",
+  "list": "List",
   "daysOfWeek": ["Sun", "Mán", "Þri", "Mið", "Fim", "Fös", "Lau"],
   "fullDaysOfWeek": [
     "Sunnudagur",

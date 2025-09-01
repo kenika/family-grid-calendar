@@ -18,6 +18,9 @@
   "noEvents": "Keine anstehenden Termine",
   "loading": "Kalendereinträge werden geladen...",
   "error": "Fehler: Kalender-Entität nicht gefunden oder falsch konfiguriert",
+  "view": "View",
+  "full_grid": "Full grid view",
+  "list": "List",
 
   "editor": {
     "calendar_entities": "Kalender Entitäten",
