@@ -53,6 +53,7 @@ var Et=Object.defineProperty;var St=(r,t,e)=>t in r?Et(r,t,{enumerable:!0,config
           ${e.map(s=>{var l,a;const o=N(s),n=this._weatherByDay[o];return v`<div class="weekday_header_day">
               <div>${Ft(t,s)} ${Wt(t,s)}</div>
               ${n?v`<div class="weather">
+
                     <ha-icon icon="mdi:weather-${n.condition}"></ha-icon>
                     <span class="high">${(l=n.high)==null?void 0:l.toFixed(0)}</span>
                     <span class="low">${(a=n.low)==null?void 0:a.toFixed(0)}</span>
@@ -63,6 +64,7 @@ var Et=Object.defineProperty;var St=(r,t,e)=>t in r?Et(r,t,{enumerable:!0,config
           <div class="time_axis spacer"></div>
           ${e.map(s=>{const o=N(s),n=this._allDayEventsByDay[o]??[];return v`<div class="all_day_area">
               ${n.map(l=>v`<div class="all_day_event" style="background:${l.calendar.color}">
+
                     ${l.title}
                   </div>`)}
             </div>`})}
@@ -70,14 +72,16 @@ var Et=Object.defineProperty;var St=(r,t,e)=>t in r?Et(r,t,{enumerable:!0,config
         <div class="main row">
           <div class="time_axis">${this._renderTimeAxis()}</div>
           ${e.map(s=>{const o=N(s),n=this._eventsByDay[o]??[];return v`<div class="day_columns">
+
               ${n.map(l=>this._renderEvent(l))}
             </div>`})}
         </div>
       </div>
     `}_toggleCalendar(t){this._activeCalendars.has(t)?this._activeCalendars.delete(t):this._activeCalendars.add(t),this.requestUpdate(),this._fetchData()}};Jt(f,"styles",Ct`
+
     :host {
       display: block;
-      --hour-height: ${Q}px;
+      --hour-height: ${X}px;
       font-family: var(--ha-card-font-family, var(--ha-font-family));
     }
     .calendar_container {
@@ -167,3 +171,4 @@ var Et=Object.defineProperty;var St=(r,t,e)=>t in r?Et(r,t,{enumerable:!0,config
       overflow: hidden;
     }
   `);w([bt({attribute:!1})],f.prototype,"hass",2);w([O()],f.prototype,"_config",2);w([O()],f.prototype,"_eventsByDay",2);w([O()],f.prototype,"_allDayEventsByDay",2);w([O()],f.prototype,"_weatherByDay",2);w([O()],f.prototype,"_activeCalendars",2);f=w([jt("family-grid-calendar")],f);const X=window;X.customCards=X.customCards||[];X.customCards.push({type:"family-grid-calendar",name:"Family Grid Calendar",description:"Week-view calendar with optional weather."});
+
