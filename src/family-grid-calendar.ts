@@ -85,10 +85,20 @@ export class FamilyGridCalendar extends LitElement {
 
     const eventsByDay: Record<string, CalendarEvent[]> = {};
     interface HassCalEvent {
-      start?: string;
+      start?:
+        | string
+        | {
+            date?: string;
+            dateTime?: string;
+          };
       start_time?: string;
       startTime?: string;
-      end?: string;
+      end?:
+        | string
+        | {
+            date?: string;
+            dateTime?: string;
+          };
       end_time?: string;
       endTime?: string;
       summary?: string;
@@ -105,15 +115,29 @@ export class FamilyGridCalendar extends LitElement {
             ? await hass.callApi<HassCalEvent[]>('GET', path)
             : ((await fetch(`/api/${path}`).then((r) => r.json())) as HassCalEvent[]);
           for (const ev of data || []) {
-            const evStart = new Date(ev.start || ev.start_time || ev.startTime || 0);
-            const evEnd = new Date(ev.end || ev.end_time || ev.endTime || 0);
+            const startStr =
+              typeof ev.start === 'object'
+                ? ev.start.dateTime || ev.start.date || ''
+                : ev.start || ev.start_time || ev.startTime || '';
+            const endStr =
+              typeof ev.end === 'object'
+                ? ev.end.dateTime || ev.end.date || ''
+                : ev.end || ev.end_time || ev.endTime || '';
+            const evStart = new Date(startStr);
+            const evEnd = new Date(endStr);
             const key = getDayKey(evStart);
+            const allDay =
+              ev.all_day ||
+              ev.allDay ||
+              (typeof ev.start === 'object'
+                ? !!ev.start.date && !ev.start.dateTime
+                : startStr.length === 10);
             (eventsByDay[key] ||= []).push({
               start: evStart,
               end: evEnd,
               title: ev.summary || ev.title || '',
               calendar: cal,
-              allDay: ev.all_day || ev.allDay || false,
+              allDay,
             });
           }
         } catch (_e) {
