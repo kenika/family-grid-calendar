@@ -8,7 +8,8 @@
     "strict": true,
     "sourceMap": true,
     "outDir": "dist",
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "experimentalDecorators": true
   },
   "include": ["src/**/*.ts"]
 }
