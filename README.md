@@ -1,8 +1,14 @@
 # Family Grid Calendar Card
 
-A custom dashboard card for Home Assistant that displays multiple family calendars and local weather in a grid layout. Built for distribution through [HACS](https://hacs.xyz/).
+A custom dashboard card for Home Assistant. Currently, the card only renders a placeholder while core functionality is under development. Built for distribution through [HACS](https://hacs.xyz/).
 
-## Features
+## Current Status
+
+- Renders a placeholder card displaying "Family Grid Calendar Card".
+
+## Roadmap
+
+Planned features include:
 
 - Show multiple Home Assistant calendar entities
 - Display upcoming weather forecast
