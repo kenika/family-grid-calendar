@@ -51,6 +51,7 @@ export const fullGridStyles = css`
     display: grid;
     grid-template-columns: repeat(var(--full-grid-days, 7), 1fr);
     padding-left: var(--time-axis-width);
+    min-height: 24px;
   }
 
   .ccp-all-day-cell {

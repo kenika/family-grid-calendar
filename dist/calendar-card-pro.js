@@ -751,40 +751,44 @@ let be;{const e=globalThis.litIssuedWarnings??=new Set;be=(t,a)=>{a+=` See https
   `}function li(e,t,a,n,i,r,o){const s=e.length;return Q`<div class="ccp-full-grid" style="--full-grid-days:${s}">
     ${function(e,t,a){return Q`<div class="ccp-calendar-header">
     ${e.entities.map((e=>{const n="string"==typeof e?{entity:e,color:"var(--primary-text-color)"}:e,i=t.includes(n.entity);return Q`<button
-        class="ccp-filter-btn"
-        style="color:${n.color};opacity:${i?"1":"0.4"}"
+        class="ccp-filter-btn ${i?"is-active":""}"
+        style="color:${n.color}"
         @click=${()=>a(n.entity)}
       >
         ${n.label||n.entity}
       </button>`}))}
   </div>`}(t,i,r)}
     <div class="ccp-weekday-header">
-      ${e.map((e=>Q`<div>${e.weekday} ${e.day}${t.show_month?` ${e.month}`:""}</div>`))}
+      ${e.map((e=>Q`<div class="ccp-weekday-label">
+            ${e.weekday} ${e.day}${t.show_month?` ${e.month}`:""}
+          </div>`))}
     </div>
-    <div class="ccp-grid-body">
+    <div class="ccp-all-day-row">${e.map((e=>function(e,t){const a=e.events.filter((e=>!e.start.dateTime&&!e._isEmptyDay));return Q`<div class="ccp-all-day-cell">
+    ${a.map((e=>{var a;const n=(null==(a=e._matchedConfig)?void 0:a.color)||t.event_color;return Q`<div class="ccp-event-block" style="background-color:${n}">
+        ${e.summary}
+      </div>`}))}
+  </div>`}(e,t)))}</div>
+    <div class="ccp-main-grid">
       ${Q`<div class="ccp-time-axis">
     ${Array.from({length:24},((e,t)=>Q`<div>${t.toString().padStart(2,"0")}:00</div>`))}
   </div>`}
-      <div class="ccp-day-columns">${e.map((e=>function(e,t){const a=new Date(e.timestamp),n=0===a.getDay()||6===a.getDay(),i=(new Date).toDateString()===a.toDateString();let r="";n&&t.weekend_day_color&&(r=`background-color:${t.weekend_day_color};`);i&&t.today_day_color&&(r=`background-color:${t.today_day_color};`);const o=e.events.filter((e=>!e.start.dateTime&&!e._isEmptyDay)),s=function(e){const t=e.filter((e=>{var t;return e.start.dateTime&&(null==(t=e.end)?void 0:t.dateTime)})).map((e=>{const t=new Date(e.start.dateTime),a=new Date(e.end.dateTime);return{event:e,startMinute:60*t.getHours()+t.getMinutes(),endMinute:60*a.getHours()+a.getMinutes()}})).sort(((e,t)=>e.startMinute-t.startMinute)),a=[],n=[];t.forEach((e=>{let t=a.findIndex((t=>t<=e.startMinute));-1===t?(t=a.length,a.push(e.endMinute)):a[t]=e.endMinute,n.push(hn(un({},e),{lane:t,laneCount:0}))}));const i=a.length;return n.forEach((e=>e.laneCount=i)),n}(e.events.filter((e=>e.start.dateTime)));return Q`<div class="ccp-day-column" style=${r}>
-    <div class="ccp-all-day-area">
-      ${o.map((e=>{var a;const n=(null==(a=e._matchedConfig)?void 0:a.color)||t.event_color;return Q`<div class="ccp-event-block" style="background-color:${n}">
-          ${e.summary}
-        </div>`}))}
-    </div>
-    <div class="ccp-events">
-      ${s.map((e=>{var a;const n=(null==(a=e.event._matchedConfig)?void 0:a.color)||t.event_color;return Q`<div
-          class="ccp-event-block"
-          style="top:${e.startMinute}px;height:${e.endMinute-e.startMinute}px;left:${e.lane/e.laneCount*100}%;width:${1/e.laneCount*100}%;background-color:${n}"
-        >
-          ${e.event.summary}
-        </div>`}))}
-    </div>
-  </div>`}(e,t)))}</div>
+      <div class="ccp-day-columns">
+        ${e.map((e=>function(e,t){const a=new Date(e.timestamp),n=0===a.getDay()||6===a.getDay(),i=(new Date).toDateString()===a.toDateString();let r="";n&&t.weekend_day_color&&(r=`background-color:${t.weekend_day_color};`);i&&t.today_day_color&&(r=`background-color:${t.today_day_color};`);return Q`<div class="ccp-day-column" style=${r}></div>`}(e,t)))}
+        ${e.map(((e,a)=>function(e,t,a){return function(e){const t=e.filter((e=>{var t;return e.start.dateTime&&(null==(t=e.end)?void 0:t.dateTime)})).map((e=>{const t=new Date(e.start.dateTime),a=new Date(e.end.dateTime);return{event:e,startMinute:60*t.getHours()+t.getMinutes(),endMinute:60*a.getHours()+a.getMinutes()}})).sort(((e,t)=>e.startMinute-t.startMinute)),a=[],n=[];t.forEach((e=>{let t=a.findIndex((t=>t<=e.startMinute));-1===t?(t=a.length,a.push(e.endMinute)):a[t]=e.endMinute,n.push(hn(un({},e),{lane:t,laneCount:0}))}));const i=a.length;return n.forEach((e=>e.laneCount=i)),n}(e.events.filter((e=>e.start.dateTime))).map((e=>{var n;const i=(null==(n=e.event._matchedConfig)?void 0:n.color)||a.event_color;return Q`<div
+      class="ccp-event-block"
+      style="--col:${t};--start:${e.startMinute/60};--end:${e.endMinute/60};--lane:${e.lane};--lanes:${e.laneCount};background-color:${i}"
+    >
+      ${e.event.summary}
+    </div>`}))}(e,a,t)))}
+      </div>
     </div>
   </div>`}const di=r`
   .ccp-full-grid {
     display: flex;
     flex-direction: column;
+    --time-axis-width: 50px;
+    --hour-height: 60px;
+    --line-color: var(--calendar-card-line-color-vertical);
   }
 
   .ccp-calendar-header {
@@ -794,10 +798,19 @@ let be;{const e=globalThis.litIssuedWarnings??=new Set;be=(t,a)=>{a+=` See https
   }
 
   .ccp-filter-btn {
+    padding: 4px 8px;
+    border: 1px solid var(--line-color);
+    border-radius: 16px;
     background: none;
-    border: none;
     cursor: pointer;
     font: inherit;
+    opacity: 0.4;
+  }
+
+  .ccp-filter-btn.is-active {
+    background-color: var(--line-color);
+    color: var(--primary-text-color);
+    opacity: 1;
   }
 
   .ccp-weekday-header {
@@ -805,59 +818,77 @@ let be;{const e=globalThis.litIssuedWarnings??=new Set;be=(t,a)=>{a+=` See https
     grid-template-columns: repeat(var(--full-grid-days, 7), 1fr);
     text-align: center;
     font-weight: bold;
-    margin-bottom: 4px;
+    padding-left: var(--time-axis-width);
   }
 
-  .ccp-grid-body {
-    display: flex;
+  .ccp-weekday-label {
+    padding: 4px 0;
+  }
+
+  .ccp-all-day-row {
+    display: grid;
+    grid-template-columns: repeat(var(--full-grid-days, 7), 1fr);
+    padding-left: var(--time-axis-width);
+    min-height: 24px;
+  }
+
+  .ccp-all-day-cell {
+    min-height: 24px;
+    border-bottom: 1px solid var(--line-color);
+  }
+
+  .ccp-main-grid {
+    display: grid;
+    grid-template-columns: var(--time-axis-width) 1fr;
   }
 
   .ccp-time-axis {
     display: flex;
     flex-direction: column;
-    width: 50px;
     font-size: 12px;
-    border-top: 1px solid var(--calendar-card-line-color-vertical);
+    border-right: 1px solid var(--line-color);
   }
 
   .ccp-time-axis > div {
-    height: 60px;
-    border-bottom: 1px solid var(--calendar-card-line-color-vertical);
+    height: var(--hour-height);
+    border-top: 1px solid var(--line-color);
     box-sizing: border-box;
   }
 
   .ccp-day-columns {
-    flex: 1;
     display: grid;
     grid-template-columns: repeat(var(--full-grid-days, 7), 1fr);
     position: relative;
-  }
-
-  .ccp-day-column {
-    border-left: 1px solid var(--calendar-card-line-color-vertical);
-    position: relative;
-  }
-
-  .ccp-all-day-area {
-    min-height: 24px;
-  }
-
-  .ccp-events {
-    position: relative;
-    height: 1440px; /* 24h * 60min */
-    border-top: 1px solid var(--calendar-card-line-color-vertical);
+    min-height: calc(24 * var(--hour-height));
     background-image: repeating-linear-gradient(
       to bottom,
       transparent,
-      transparent 59px,
-      var(--calendar-card-line-color-vertical) 59px,
-      var(--calendar-card-line-color-vertical) 60px
+      transparent calc(var(--hour-height) - 1px),
+      var(--line-color) calc(var(--hour-height) - 1px),
+      var(--line-color) var(--hour-height)
     );
+  }
+
+  .ccp-day-column {
+    border-left: 1px solid var(--line-color);
+    height: 100%;
+  }
+
+  .ccp-day-column:first-child {
+    border-left: none;
   }
 
   .ccp-event-block {
     position: absolute;
-    background-color: var(--calendar-card-line-color-vertical);
+    --lanes: 1;
+    left: calc(
+      (100% / var(--full-grid-days, 7)) * var(--col) + (100% / var(--full-grid-days, 7)) *
+        (var(--lane, 0) / var(--lanes))
+    );
+    width: calc((100% / var(--full-grid-days, 7)) * (1 / var(--lanes)));
+    top: calc(var(--start) * var(--hour-height));
+    height: calc((var(--end) - var(--start)) * var(--hour-height));
+    background-color: var(--line-color);
     color: var(--primary-text-color);
     border-radius: 4px;
     padding: 2px;
