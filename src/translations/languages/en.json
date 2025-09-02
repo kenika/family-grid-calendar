@@ -56,6 +56,9 @@
     "entity_split_multiday_note": "Split multi-day events into individual day segments for this calendar.",
 
     "core_settings": "Core Settings",
+    "view": "View",
+    "list": "List",
+    "full_grid": "Full grid view",
     "time_range": "Time Range",
     "time_range_note": "This time range defines the regular display mode, which becomes the expanded view if compact mode is configured.",
     "days_to_show": "Days to show",
