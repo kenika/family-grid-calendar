@@ -5,6 +5,9 @@
 - Introduced runtime calendar filters with per-entity buttons in the grid header.
 - Implemented `calculateGridPositions` utility for lane-based event placement.
 - Supplied translations and documentation for the full-grid view.
+- Enhanced full-grid layout: calendar-level colors tint event blocks, empty days render as blank columns, hourly grid lines span
+  the time axis and day columns, weekday headers show the month when `show_month` is enabled, and optional weekend/today colors
+  tint entire day columns.
 
 # Calendar Card Pro v3.1.0
 
