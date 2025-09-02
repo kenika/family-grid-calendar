@@ -758,24 +758,28 @@ let be;{const e=globalThis.litIssuedWarnings??=new Set;be=(t,a)=>{a+=` See https
         ${n.label||n.entity}
       </button>`}))}
   </div>`}(t,i,r)}
-    <div class="ccp-weekday-header">${e.map((e=>Q`<div>${e.weekday} ${e.day}</div>`))}</div>
+    <div class="ccp-weekday-header">
+      ${e.map((e=>Q`<div>${e.weekday} ${e.day}${t.show_month?` ${e.month}`:""}</div>`))}
+    </div>
     <div class="ccp-grid-body">
       ${Q`<div class="ccp-time-axis">
     ${Array.from({length:24},((e,t)=>Q`<div>${t.toString().padStart(2,"0")}:00</div>`))}
   </div>`}
-      <div class="ccp-day-columns">${e.map((e=>function(e){const t=e.events.filter((e=>!e.start.dateTime)),a=function(e){const t=e.filter((e=>{var t;return e.start.dateTime&&(null==(t=e.end)?void 0:t.dateTime)})).map((e=>{const t=new Date(e.start.dateTime),a=new Date(e.end.dateTime);return{event:e,startMinute:60*t.getHours()+t.getMinutes(),endMinute:60*a.getHours()+a.getMinutes()}})).sort(((e,t)=>e.startMinute-t.startMinute)),a=[],n=[];t.forEach((e=>{let t=a.findIndex((t=>t<=e.startMinute));-1===t?(t=a.length,a.push(e.endMinute)):a[t]=e.endMinute,n.push(hn(un({},e),{lane:t,laneCount:0}))}));const i=a.length;return n.forEach((e=>e.laneCount=i)),n}(e.events.filter((e=>e.start.dateTime)));return Q`<div class="ccp-day-column">
+      <div class="ccp-day-columns">${e.map((e=>function(e,t){const a=new Date(e.timestamp),n=0===a.getDay()||6===a.getDay(),i=(new Date).toDateString()===a.toDateString();let r="";n&&t.weekend_day_color&&(r=`background-color:${t.weekend_day_color};`);i&&t.today_day_color&&(r=`background-color:${t.today_day_color};`);const o=e.events.filter((e=>!e.start.dateTime&&!e._isEmptyDay)),s=function(e){const t=e.filter((e=>{var t;return e.start.dateTime&&(null==(t=e.end)?void 0:t.dateTime)})).map((e=>{const t=new Date(e.start.dateTime),a=new Date(e.end.dateTime);return{event:e,startMinute:60*t.getHours()+t.getMinutes(),endMinute:60*a.getHours()+a.getMinutes()}})).sort(((e,t)=>e.startMinute-t.startMinute)),a=[],n=[];t.forEach((e=>{let t=a.findIndex((t=>t<=e.startMinute));-1===t?(t=a.length,a.push(e.endMinute)):a[t]=e.endMinute,n.push(hn(un({},e),{lane:t,laneCount:0}))}));const i=a.length;return n.forEach((e=>e.laneCount=i)),n}(e.events.filter((e=>e.start.dateTime)));return Q`<div class="ccp-day-column" style=${r}>
     <div class="ccp-all-day-area">
-      ${t.map((e=>Q`<div class="ccp-event-block">${e.summary}</div>`))}
+      ${o.map((e=>{var a;const n=(null==(a=e._matchedConfig)?void 0:a.color)||t.event_color;return Q`<div class="ccp-event-block" style="background-color:${n}">
+          ${e.summary}
+        </div>`}))}
     </div>
     <div class="ccp-events">
-      ${a.map((e=>Q`<div
-            class="ccp-event-block"
-            style="top:${e.startMinute}px;height:${e.endMinute-e.startMinute}px;left:${e.lane/e.laneCount*100}%;width:${1/e.laneCount*100}%"
-          >
-            ${e.event.summary}
-          </div>`))}
+      ${s.map((e=>{var a;const n=(null==(a=e.event._matchedConfig)?void 0:a.color)||t.event_color;return Q`<div
+          class="ccp-event-block"
+          style="top:${e.startMinute}px;height:${e.endMinute-e.startMinute}px;left:${e.lane/e.laneCount*100}%;width:${1/e.laneCount*100}%;background-color:${n}"
+        >
+          ${e.event.summary}
+        </div>`}))}
     </div>
-  </div>`}(e)))}</div>
+  </div>`}(e,t)))}</div>
     </div>
   </div>`}const di=r`
   .ccp-full-grid {
@@ -813,10 +817,13 @@ let be;{const e=globalThis.litIssuedWarnings??=new Set;be=(t,a)=>{a+=` See https
     flex-direction: column;
     width: 50px;
     font-size: 12px;
+    border-top: 1px solid var(--calendar-card-line-color-vertical);
   }
 
   .ccp-time-axis > div {
     height: 60px;
+    border-bottom: 1px solid var(--calendar-card-line-color-vertical);
+    box-sizing: border-box;
   }
 
   .ccp-day-columns {
@@ -838,6 +845,14 @@ let be;{const e=globalThis.litIssuedWarnings??=new Set;be=(t,a)=>{a+=` See https
   .ccp-events {
     position: relative;
     height: 1440px; /* 24h * 60min */
+    border-top: 1px solid var(--calendar-card-line-color-vertical);
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 59px,
+      var(--calendar-card-line-color-vertical) 59px,
+      var(--calendar-card-line-color-vertical) 60px
+    );
   }
 
   .ccp-event-block {

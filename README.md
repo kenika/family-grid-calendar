@@ -264,6 +264,12 @@ entities:
 
 Each calendar gets a filter button in the header so you can toggle its events on and off.
 
+- Event blocks use each calendar's configured color.
+- Empty days render as blank columns, even when `show_days_without_events` is enabled.
+- Weekday headers include the month when `show_month` is set.
+- Weekend and today columns can be tinted with `weekend_day_color` and `today_day_color`.
+- Hourly grid lines span the time axis and day columns to provide temporal context.
+
 ### Core Settings
 
 #### 🗂️ Entity Configuration
