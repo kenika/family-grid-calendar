@@ -25,10 +25,14 @@ export function renderFullGrid(
 
   return html`<div class="ccp-full-grid" style="--full-grid-days:${dayCount}">
     ${renderCalendarHeader(config, activeCalendars, toggleCalendar)}
-    <div class="ccp-weekday-header">${days.map((d) => html`<div>${d.weekday} ${d.day}</div>`)}</div>
+    <div class="ccp-weekday-header">
+      ${days.map(
+        (d) => html`<div>${d.weekday} ${d.day}${config.show_month ? ` ${d.month}` : ''}</div>`,
+      )}
+    </div>
     <div class="ccp-grid-body">
       ${renderTimeAxis()}
-      <div class="ccp-day-columns">${days.map((d) => renderDayColumn(d))}</div>
+      <div class="ccp-day-columns">${days.map((d) => renderDayColumn(d, config))}</div>
     </div>
   </div>`;
 }
@@ -68,26 +72,43 @@ function renderTimeAxis(): TemplateResult {
 /**
  * Render a single day column with all-day and timed events
  */
-function renderDayColumn(day: Types.EventsByDay): TemplateResult {
-  const allDayEvents = day.events.filter((e) => !e.start.dateTime);
+function renderDayColumn(day: Types.EventsByDay, config: Types.Config): TemplateResult {
+  const date = new Date(day.timestamp);
+  const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+  const isToday = new Date().toDateString() === date.toDateString();
+
+  let columnStyle = '';
+  if (isWeekend && config.weekend_day_color) {
+    columnStyle = `background-color:${config.weekend_day_color};`;
+  }
+  if (isToday && config.today_day_color) {
+    columnStyle = `background-color:${config.today_day_color};`;
+  }
+
+  const allDayEvents = day.events.filter((e) => !e.start.dateTime && !e._isEmptyDay);
   const timedPositions = calculateGridPositions(day.events.filter((e) => e.start.dateTime));
 
-  return html`<div class="ccp-day-column">
+  return html`<div class="ccp-day-column" style=${columnStyle}>
     <div class="ccp-all-day-area">
-      ${allDayEvents.map((ev) => html`<div class="ccp-event-block">${ev.summary}</div>`)}
+      ${allDayEvents.map((ev) => {
+        const eventColor = ev._matchedConfig?.color || config.event_color;
+        return html`<div class="ccp-event-block" style="background-color:${eventColor}">
+          ${ev.summary}
+        </div>`;
+      })}
     </div>
     <div class="ccp-events">
-      ${timedPositions.map(
-        (p) =>
-          html`<div
-            class="ccp-event-block"
-            style="top:${p.startMinute}px;height:${p.endMinute - p.startMinute}px;left:${(p.lane /
-              p.laneCount) *
-            100}%;width:${(1 / p.laneCount) * 100}%"
-          >
-            ${p.event.summary}
-          </div>`,
-      )}
+      ${timedPositions.map((p) => {
+        const eventColor = p.event._matchedConfig?.color || config.event_color;
+        return html`<div
+          class="ccp-event-block"
+          style="top:${p.startMinute}px;height:${p.endMinute - p.startMinute}px;left:${(p.lane /
+            p.laneCount) *
+          100}%;width:${(1 / p.laneCount) * 100}%;background-color:${eventColor}"
+        >
+          ${p.event.summary}
+        </div>`;
+      })}
     </div>
   </div>`;
 }

@@ -40,10 +40,13 @@ export const fullGridStyles = css`
     flex-direction: column;
     width: 50px;
     font-size: 12px;
+    border-top: 1px solid var(--calendar-card-line-color-vertical);
   }
 
   .ccp-time-axis > div {
     height: 60px;
+    border-bottom: 1px solid var(--calendar-card-line-color-vertical);
+    box-sizing: border-box;
   }
 
   .ccp-day-columns {
@@ -65,6 +68,14 @@ export const fullGridStyles = css`
   .ccp-events {
     position: relative;
     height: 1440px; /* 24h * 60min */
+    border-top: 1px solid var(--calendar-card-line-color-vertical);
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 59px,
+      var(--calendar-card-line-color-vertical) 59px,
+      var(--calendar-card-line-color-vertical) 60px
+    );
   }
 
   .ccp-event-block {
