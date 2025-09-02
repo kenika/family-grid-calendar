@@ -27,12 +27,19 @@ export function renderFullGrid(
     ${renderCalendarHeader(config, activeCalendars, toggleCalendar)}
     <div class="ccp-weekday-header">
       ${days.map(
-        (d) => html`<div>${d.weekday} ${d.day}${config.show_month ? ` ${d.month}` : ''}</div>`,
+        (d) =>
+          html`<div class="ccp-weekday-label">
+            ${d.weekday} ${d.day}${config.show_month ? ` ${d.month}` : ''}
+          </div>`,
       )}
     </div>
-    <div class="ccp-grid-body">
+    <div class="ccp-all-day-row">${days.map((d) => renderAllDayCell(d, config))}</div>
+    <div class="ccp-main-grid">
       ${renderTimeAxis()}
-      <div class="ccp-day-columns">${days.map((d) => renderDayColumn(d, config))}</div>
+      <div class="ccp-day-columns">
+        ${days.map((d) => renderDayBackground(d, config))}
+        ${days.map((d, idx) => renderTimedEvents(d, idx, config))}
+      </div>
     </div>
   </div>`;
 }
@@ -50,8 +57,8 @@ function renderCalendarHeader(
       const entity = typeof e === 'string' ? { entity: e, color: 'var(--primary-text-color)' } : e;
       const isActive = activeCalendars.includes(entity.entity);
       return html`<button
-        class="ccp-filter-btn"
-        style="color:${entity.color};opacity:${isActive ? '1' : '0.4'}"
+        class="ccp-filter-btn ${isActive ? 'is-active' : ''}"
+        style="color:${entity.color}"
         @click=${() => toggleCalendar(entity.entity)}
       >
         ${entity.label || entity.entity}
@@ -70,9 +77,9 @@ function renderTimeAxis(): TemplateResult {
 }
 
 /**
- * Render a single day column with all-day and timed events
+ * Render day background placeholder
  */
-function renderDayColumn(day: Types.EventsByDay, config: Types.Config): TemplateResult {
+function renderDayBackground(day: Types.EventsByDay, config: Types.Config): TemplateResult {
   const date = new Date(day.timestamp);
   const isWeekend = date.getDay() === 0 || date.getDay() === 6;
   const isToday = new Date().toDateString() === date.toDateString();
@@ -85,30 +92,41 @@ function renderDayColumn(day: Types.EventsByDay, config: Types.Config): Template
     columnStyle = `background-color:${config.today_day_color};`;
   }
 
-  const allDayEvents = day.events.filter((e) => !e.start.dateTime && !e._isEmptyDay);
-  const timedPositions = calculateGridPositions(day.events.filter((e) => e.start.dateTime));
+  return html`<div class="ccp-day-column" style=${columnStyle}></div>`;
+}
 
-  return html`<div class="ccp-day-column" style=${columnStyle}>
-    <div class="ccp-all-day-area">
-      ${allDayEvents.map((ev) => {
-        const eventColor = ev._matchedConfig?.color || config.event_color;
-        return html`<div class="ccp-event-block" style="background-color:${eventColor}">
-          ${ev.summary}
-        </div>`;
-      })}
-    </div>
-    <div class="ccp-events">
-      ${timedPositions.map((p) => {
-        const eventColor = p.event._matchedConfig?.color || config.event_color;
-        return html`<div
-          class="ccp-event-block"
-          style="top:${p.startMinute}px;height:${p.endMinute - p.startMinute}px;left:${(p.lane /
-            p.laneCount) *
-          100}%;width:${(1 / p.laneCount) * 100}%;background-color:${eventColor}"
-        >
-          ${p.event.summary}
-        </div>`;
-      })}
-    </div>
+/**
+ * Render timed events for a given day as absolute blocks
+ */
+function renderTimedEvents(
+  day: Types.EventsByDay,
+  col: number,
+  config: Types.Config,
+): TemplateResult[] {
+  const timedPositions = calculateGridPositions(day.events.filter((e) => e.start.dateTime));
+  return timedPositions.map((p) => {
+    const eventColor = p.event._matchedConfig?.color || config.event_color;
+    return html`<div
+      class="ccp-event-block"
+      style="--col:${col};--start:${p.startMinute / 60};--end:${p.endMinute /
+      60};--lane:${p.lane};--lanes:${p.laneCount};background-color:${eventColor}"
+    >
+      ${p.event.summary}
+    </div>`;
+  });
+}
+
+/**
+ * Render a cell in the all-day events row
+ */
+function renderAllDayCell(day: Types.EventsByDay, config: Types.Config): TemplateResult {
+  const allDayEvents = day.events.filter((e) => !e.start.dateTime && !e._isEmptyDay);
+  return html`<div class="ccp-all-day-cell">
+    ${allDayEvents.map((ev) => {
+      const eventColor = ev._matchedConfig?.color || config.event_color;
+      return html`<div class="ccp-event-block" style="background-color:${eventColor}">
+        ${ev.summary}
+      </div>`;
+    })}
   </div>`;
 }

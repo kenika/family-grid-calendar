@@ -8,6 +8,9 @@ export const fullGridStyles = css`
   .ccp-full-grid {
     display: flex;
     flex-direction: column;
+    --time-axis-width: 50px;
+    --hour-height: 60px;
+    --line-color: var(--calendar-card-line-color-vertical);
   }
 
   .ccp-calendar-header {
@@ -17,10 +20,19 @@ export const fullGridStyles = css`
   }
 
   .ccp-filter-btn {
+    padding: 4px 8px;
+    border: 1px solid var(--line-color);
+    border-radius: 16px;
     background: none;
-    border: none;
     cursor: pointer;
     font: inherit;
+    opacity: 0.4;
+  }
+
+  .ccp-filter-btn.is-active {
+    background-color: var(--line-color);
+    color: var(--primary-text-color);
+    opacity: 1;
   }
 
   .ccp-weekday-header {
@@ -28,59 +40,76 @@ export const fullGridStyles = css`
     grid-template-columns: repeat(var(--full-grid-days, 7), 1fr);
     text-align: center;
     font-weight: bold;
-    margin-bottom: 4px;
+    padding-left: var(--time-axis-width);
   }
 
-  .ccp-grid-body {
-    display: flex;
+  .ccp-weekday-label {
+    padding: 4px 0;
+  }
+
+  .ccp-all-day-row {
+    display: grid;
+    grid-template-columns: repeat(var(--full-grid-days, 7), 1fr);
+    padding-left: var(--time-axis-width);
+  }
+
+  .ccp-all-day-cell {
+    min-height: 24px;
+    border-bottom: 1px solid var(--line-color);
+  }
+
+  .ccp-main-grid {
+    display: grid;
+    grid-template-columns: var(--time-axis-width) 1fr;
   }
 
   .ccp-time-axis {
     display: flex;
     flex-direction: column;
-    width: 50px;
     font-size: 12px;
-    border-top: 1px solid var(--calendar-card-line-color-vertical);
+    border-right: 1px solid var(--line-color);
   }
 
   .ccp-time-axis > div {
-    height: 60px;
-    border-bottom: 1px solid var(--calendar-card-line-color-vertical);
+    height: var(--hour-height);
+    border-top: 1px solid var(--line-color);
     box-sizing: border-box;
   }
 
   .ccp-day-columns {
-    flex: 1;
     display: grid;
     grid-template-columns: repeat(var(--full-grid-days, 7), 1fr);
     position: relative;
-  }
-
-  .ccp-day-column {
-    border-left: 1px solid var(--calendar-card-line-color-vertical);
-    position: relative;
-  }
-
-  .ccp-all-day-area {
-    min-height: 24px;
-  }
-
-  .ccp-events {
-    position: relative;
-    height: 1440px; /* 24h * 60min */
-    border-top: 1px solid var(--calendar-card-line-color-vertical);
+    min-height: calc(24 * var(--hour-height));
     background-image: repeating-linear-gradient(
       to bottom,
       transparent,
-      transparent 59px,
-      var(--calendar-card-line-color-vertical) 59px,
-      var(--calendar-card-line-color-vertical) 60px
+      transparent calc(var(--hour-height) - 1px),
+      var(--line-color) calc(var(--hour-height) - 1px),
+      var(--line-color) var(--hour-height)
     );
+  }
+
+  .ccp-day-column {
+    border-left: 1px solid var(--line-color);
+    height: 100%;
+  }
+
+  .ccp-day-column:first-child {
+    border-left: none;
   }
 
   .ccp-event-block {
     position: absolute;
-    background-color: var(--calendar-card-line-color-vertical);
+    --lanes: 1;
+    left: calc(
+      (100% / var(--full-grid-days, 7)) * var(--col) + (100% / var(--full-grid-days, 7)) *
+        (var(--lane, 0) / var(--lanes))
+    );
+    width: calc((100% / var(--full-grid-days, 7)) * (1 / var(--lanes)));
+    top: calc(var(--start) * var(--hour-height));
+    height: calc((var(--end) - var(--start)) * var(--hour-height));
+    background-color: var(--line-color);
     color: var(--primary-text-color);
     border-radius: 4px;
     padding: 2px;

@@ -8,6 +8,8 @@
 - Enhanced full-grid layout: calendar-level colors tint event blocks, empty days render as blank columns, hourly grid lines span
   the time axis and day columns, weekday headers show the month when `show_month` is enabled, and optional weekend/today colors
   tint entire day columns.
+- Refactored full-grid markup to include a separate all-day row and scrollable timed grid with the time axis starting below all-day events.
+- Added sizing CSS variables (`--time-axis-width`, `--hour-height`) and event positioning vars (`--col`, `--start`, `--end`, `--lane`, `--lanes`) for lane-aware widths.
 
 # Calendar Card Pro v3.1.0
 
