@@ -581,6 +581,18 @@ export class CalendarCardProEditor extends LitElement {
           this._getTranslation('core_settings'),
           mdiCalendarMonth,
           html`
+            <!-- View -->
+            <ha-select
+              label="${this._getTranslation('view')}"
+              .value="${this.getConfigValue('view', 'list')}"
+              @change="${(event: Event) =>
+                this.setConfigValue('view', (event.target as HTMLSelectElement).value)}"
+              @closed="${(event: Event) => event.stopPropagation()}"
+            >
+              <mwc-list-item value="list">${this._getTranslation('list')}</mwc-list-item>
+              <mwc-list-item value="full-grid">${this._getTranslation('full_grid')}</mwc-list-item>
+            </ha-select>
+
             <!-- Display Range -->
             <h3>${this._getTranslation('time_range')}</h3>
             <div class="helper-text">${this._getTranslation('time_range_note')}</div>
